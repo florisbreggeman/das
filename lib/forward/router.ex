@@ -20,7 +20,7 @@ defmodule Forward.Router do
     params = Plug.Conn.Query.decode(conn.query_string)
     scheme = Map.get(params, "scheme", "https://")
     host = Map.get(params, "host")
-    uri = Map.get(params, "uri", "/")
+    uri = Map.get(params, "uri", "/") |> String.split("?") |> Enum.at(0) #Nginx can only pass one query parameter; this gets around that.
     client = if host == nil do nil else Clients.get_by_url(host) end
     cond do
       host == nil ->
