@@ -23,13 +23,17 @@ function notify(text){
 }
 
 function edit(clientid){
-    element = document.getElementById('client-'+String(clientid));
-    name_field = element.querySelector('.name');
-    url_field = element.querySelector('.url');
+    let element = document.getElementById('client-'+String(clientid));
+    let name_field = element.querySelector('.name');
+    let url_field = element.querySelector('.url');
+    let destination_field = element.querySelector('.destination');
 
-    body = {
+    let body = {
         'name': name_field.value,
         'url': url_field.value
+    }
+    if(destination_field !== null){
+        body.destination = destination_field.value;
     }
 
     apiCall(PATH_CLIENT+"/"+String(clientid), PUT, body, function(res){
@@ -86,7 +90,7 @@ function load(){
                     url_field = add_field("Domain: ", 'url', item.url, element);
                     break;
                 case "proxy":
-                    url_field = add_field("Proxy to: ", 'url', item.url, element);
+                    url_field = add_field("Domain: ", 'url', item.url, element);
                     break;
                 default:
                     url_field = add_field("URL: ", 'url', item.url, element);
@@ -95,6 +99,12 @@ function load(){
                 edit(item.id)
             });
 
+            if(item.type === "proxy"){
+                let destination_field = add_field("Proxy to: ", 'destination', item.destination, element);
+                onEnter(destination_field, function(){
+                    edit(item.id)
+                });
+            }
 
             if(item.type === "oauth"){
                 callbacks = document.createElement('div');
@@ -197,14 +207,24 @@ function delete_callback(client_id, uri, element){
 }
 
 function create_client(){
-    name_field = document.getElementById("name");
-    type_field = document.getElementById("type");
-    url_field = document.getElementById("url");
+    let name_field = document.getElementById("name");
+    let type_field = document.getElementById("type");
+    let url_field = document.getElementById("url");
 
-    body = {
+    let destination_field;
+    if(type_field.value === "proxy"){
+        destination_field = document.getElementById("destination");
+    }else{
+        destination_field = null;
+    }
+
+    let body = {
         'name': name_field.value,
         'type': type_field.value,
         'url': url_field.value
+    }
+    if(destination_field !== null){
+        body.destination = destination_field.value
     }
     apiCall(PATH_CLIENT, POST, body, function(res){
         notify("Created client");
@@ -253,10 +273,29 @@ function set_url_placeholder(){
             url_field.placeholder = "Service Domain";
             break;
         case "proxy":
-            url_field.placeholder = "Adress to proxy to";
+            url_field.placeholder = "Service Domain";
             break;
         default:
             url_field.placeholder = "URL";
+    }
+
+    let form = document.getElementById("form");
+    if(value === "proxy"){
+        let destination_field = document.createElement("input");
+        destination_field.type = "text";
+        destination_field.id = "destination";
+        destination_field.placeholder = "Address to proxy to (in full)";
+        br = document.createElement("br");
+        br.id = "destination_br";
+        form.insertBefore(destination_field, type_field);
+        form.insertBefore(br, type_field);
+    }else{
+        let destination_field = document.getElementById("destination");
+        if(destination_field != null){
+            destination_field.remove();
+            let destination_br = document.getElementById("destination_br");
+            destination_br.remove();
+        }
     }
 }
 
@@ -272,5 +311,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
     load_ldapArea();
 
     load();
+
+    set_url_placeholder();
 });
 

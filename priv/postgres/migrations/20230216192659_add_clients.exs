@@ -9,6 +9,7 @@ defmodule Storage.MySQL.Migrations.AddClients do
       add :secret, :string
       add :name, :string
       add :url, :string
+      add :destination, :string
     end
 
     create unique_index("client", :url)
