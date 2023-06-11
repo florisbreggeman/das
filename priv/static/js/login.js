@@ -86,7 +86,7 @@ function submit() {
             if(redirect === null){
                 window.location.replace('index.html');
             }else{
-                window.location.replace('redirect');
+                window.location.replace(redirect);
             }
         }
     }
