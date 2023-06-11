@@ -16,9 +16,9 @@ defmodule OAuth.Router do
     params = Plug.Conn.Query.decode(conn.query_string)
     client_id = Map.get(params, "client_id")
     client = Clients.get(client_id)
-    #TODO verify redirect url
     response_types = Map.get(params, "response_type", "code") |> String.downcase() |> String.split()
     redirect = Map.get(params, "redirect_uri")
+    redirect_object = Clients.get_callbackuri_object(client_id, redirect)
     state = Map.get(params, "state")
     scopes = Map.get(params, "scope", "openid") |> String.downcase() |> String.split()
     cond do
@@ -36,6 +36,10 @@ defmodule OAuth.Router do
         conn
         |> put_resp_content_type("text/plain")
         |> send_resp(:bad_request, "No Redirect URI parameter in request")
+      redirect_object == nil ->
+        conn
+        |> put_resp_content_type("text/plain")
+        |> send_resp(:bad_request, "This is an unregistered redirect URI. Please contact your system administrator")
       true ->
         case Enum.at(response_types, 0) do
           "code" ->

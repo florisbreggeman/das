@@ -68,9 +68,7 @@ defmodule Clients do
       where: c.client_id==^client and c.uri==^uri
       repo.one(query)
     rescue
-      e -> 
-        IO.inspect(e)
-        nil
+      _ -> nil
     end
   end
 end
