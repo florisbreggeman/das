@@ -65,6 +65,19 @@ defmodule Admin do
     |> send_resp(status, msg)
   end
 
+  put "/user/:id/change_password" do
+    new_password = Admin.User.change_password(id)
+    if new_password == nil do
+      conn
+      |> put_resp_content_type("text/plain")
+      |> send_resp(:not_found, "No user with id #{id}")
+    else
+      conn
+      |> put_resp_content_type("application/json")
+      |> send_resp(:ok, Jason.encode!(%{password: new_password}))
+    end
+  end
+
   match _ do
     conn
     |> put_resp_content_type("text/plain")

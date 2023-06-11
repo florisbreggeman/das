@@ -64,6 +64,19 @@ defmodule Admin.User do
     end
   end
 
+  def change_password(id) do
+    user = Users.get_by_id(id)
+    if user == nil do
+      nil
+    else
+      new_password = :crypto.strong_rand_bytes(32) |> Base.encode64()
+      repo = Storage.get()
+      cast(user, %{password: Bcrypt.hash_pwd_salt(new_password)}, [:password])
+      |> repo.update()
+      new_password
+    end
+  end
+
   defp get_admin_count() do
     repo = Storage.get()
     query = from u in Users.User, where: u.admin, select: count(u.id)
