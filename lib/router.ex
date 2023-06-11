@@ -25,7 +25,7 @@ defmodule Router do
   end
 
   get "/.well-known/openid-configuration" do
-    issuer = Atom.to_string(conn.scheme) <> "://" <> conn.host
+    issuer = Application.get_env(:das, :oauth_scheme, "https://") <> conn.host
     claims = %{
       "issuer" => issuer,
       "authorization_endpoint" => issuer <> "/oauth/authorize",
