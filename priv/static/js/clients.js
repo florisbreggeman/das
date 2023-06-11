@@ -194,7 +194,7 @@ function load_callbacks(client_id, element){
             button.classList.add('pure-button');
             button.classList.add('button-delete');
             button.style = 'width: 100%';
-            button.addEventListener("click", function(){delete_callback(client_id, callback, li)});
+            button.addEventListener("click", function(){delete_callback(client_id, callback, div_1, div_2)});
             div_2.appendChild(button);
 
             ul.appendChild(div_1);
@@ -242,12 +242,13 @@ function add_callback(client_id, field, element){
     });
 }
 
-function delete_callback(client_id, uri, element){
+function delete_callback(client_id, uri, element, button_element){
     body = {
        "uri": uri
     }
     apiCall(PATH_CLIENT+"/"+client_id+"/callbacks", DELETE, body, function(res){
         element.remove()
+        button_element.remove()
     }, function(status, msg){
         Jackbox.error("Failed removing callback " + uri + " for " + client_id + ": " + msg)
     });
