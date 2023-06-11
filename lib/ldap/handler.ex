@@ -1,5 +1,7 @@
 defmodule LDAP.Handler do
 
+  import Ecto.Query
+
   def start_link(ref, socket, transport, opts) do
     pid = spawn_link(fn -> init(ref, socket, transport, opts) end)
     {:ok, pid}
@@ -26,7 +28,7 @@ defmodule LDAP.Handler do
             if new_bind == :close do
               transport.close(socket)
             else
-              loop(socket, transport, bind)
+              loop(socket, transport, new_bind)
             end
           _ -> 
             transport.close(socket)
@@ -58,10 +60,16 @@ defmodule LDAP.Handler do
     {response, bind}
   end
 
-  defp handle({:searchRequest, {:SearchRequest, _domain, _subtree, _deref, _typeonly, size, time, constraints, attributes}}, bind) do
-    #TODO: actually implement search
-    response = {:SearchResDone, {:LDAPResult, :insufficientAccessRights, "", "You must be authenticated to search", :asn1_NOVALUE}}
-    {response, bind}
+  defp handle({:searchRequest, {:SearchRequest, _domain, _subtree, _deref, size, _time, _typesonly, filters, attributes}}, bind) do
+    if bind == nil do
+      response = {:searchResDone, {:LDAPResult, :insufficientAccessRights, "", "You must be authenticated to search", :asn1_NOVALUE}}
+      {response, bind}
+    else
+      query = from Users.User
+      query = build_query(filters, query)
+      response = {:searchResDone, {:LDAPResult, :insufficientAccessRights, "", "You must be authenticated to search", :asn1_NOVALUE}}
+      {response, bind}
+    end
   end
 
   # unknown requests, also handles unbinds
@@ -69,4 +77,37 @@ defmodule LDAP.Handler do
     IO.inspect(request)
     {nil, :close}
   end
+
+  def build_query(filters, query, type \\ :where)
+
+  def build_query({:and, filters}, query, type) do
+    Enum.reduce(filters, query, fn filter, query ->
+      build_query(filter, query, :where)
+    end)
+  end
+
+  def build_query({:or, filters}, query, type) do
+    Enum.reduce(filters, query, fn filter, query ->
+      build_query(filter, query, :or_where)
+    end)
+  end
+
+  def build_query({:equalityMatch, {_attributeValueAssertion, field, value}}, query, :where) do
+    field = String.to_atom(field)
+    if Users.User.__schema__(:fields) |> Enum.member?(field) do
+      from query, [{:where, ^Keyword.new([{field, value}])}]
+    else
+      query
+    end
+  end
+
+  def build_query({:equalityMatch, {_attributeValueAssertion, field, value}}, query, :or_where) do
+    field = String.to_atom(field)
+    if Users.User.__schema__(:fields) |> Enum.member?(field) do
+      from query, [{:or_where, ^Keyword.new([{field, value}])}]
+    else
+      query
+    end
+  end
+
 end
