@@ -77,7 +77,11 @@ defmodule OAuth.Router do
     client_id = Map.get(body, "client_id")
     secret = Map.get(body, "client_secret")
     secret = if secret == nil do Map.get(headers, "authorization", "") |> String.split() |> Enum.at(1) else secret end #allow for authorization via HTTP headers if not provided in body
-    if Clients.verify(client_id, secret) do
+    if Clients.verify(client_id, secret) == nil do
+      conn
+      |> put_resp_content_type("text/plain")
+      |> send_resp(:forbidden, "Invalid client credentials")
+    else
       case Map.get(body, "grant_type", "authorization_code") |> String.downcase() do
         _ -> #default: authorization_code
                   code = Map.get(body, "code")
@@ -113,7 +117,7 @@ defmodule OAuth.Router do
                 claims = %{
                   sub: user_id,
                   aud: client_id,
-                  iss: Atom.to_string(conn.scheme) <> "://" <>  conn.host,
+                  iss: Application.get_env(:das, :oauth_scheme, "https://") <>  conn.host,
                   given_name: user.given_names,
                   family_name: user.family_name,
                   email: user.email
@@ -135,10 +139,6 @@ defmodule OAuth.Router do
             end
           end
       end
-    else
-      conn
-      |> put_resp_content_type("text/plain")
-      |> send_resp(:forbidden, "Invalid client credentials")
     end
   end
 
