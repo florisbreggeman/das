@@ -78,6 +78,13 @@ function load(){
                 edit(item.id)
             });
 
+            if(item.type === "oauth"){
+                callbacks = document.createElement('div');
+                callbacks.classList.add("callback_uris");
+                element.appendChild(callbacks);
+                load_callbacks(item.id, callbacks);
+            }
+
             edit_button = document.createElement('button');
             edit_button.appendChild(document.createTextNode('Edit Data'));
             element.appendChild(edit_button);
@@ -109,6 +116,66 @@ function load_ldapArea(){
         style = document.querySelector('style#js');
         style.innerHTML = ".ldapClient:before { content: \"id=\"; } .ldapClient:after { content: \"," + res + "\"; }"
     })
+}
+
+function load_callbacks(client_id, element){
+    apiCall(PATH_CLIENT+"/"+client_id+"/callbacks", GET, null, function(res){
+        removeAllChildNodes(element);
+
+        let title = document.createElement('b')
+        title.appendChild(document.createTextNode("Callback URIs:"))
+        element.appendChild(title)
+        element.appendChild(document.createElement('br'))
+        let ul = document.createElement('ul');
+        res.forEach(function(callback){
+            let li = document.createElement('li');
+            li.appendChild(document.createTextNode(callback))
+            li.appendChild(document.createTextNode("\u00A0\u00A0\u00A0\u00A0")); //add some whitespace
+            let button = document.createElement('button');
+            button.appendChild(document.createTextNode("delete"));
+            button.addEventListener("click", function(){delete_callback(client_id, callback, li)});
+            li.appendChild(button);
+
+            ul.appendChild(li)
+        });
+        element.appendChild(ul);
+
+        let field = document.createElement('input');
+        field.type = 'text';
+        field.placeholder = 'Callback URI';
+        element.appendChild(field);
+
+        let button = document.createElement('button');
+        button.appendChild(document.createTextNode("Add new Callback URI"));
+        button.addEventListener("click", function(){add_callback(client_id, field, element);});
+        element.appendChild(button);
+
+    }, function(status, msg){
+        notify("Failed loading callbacks for " + client_id + ": " + msg)
+    });
+}
+
+function add_callback(client_id, field, element){
+    body = {
+        "uri": field.value
+    }
+    apiCall(PATH_CLIENT+"/"+client_id+"/callbacks", POST, body, function(res){
+        notify("Added Callback URL");
+        load_callbacks(client_id, element);
+    }, function(msg, status){
+        notify("Error adding callback URL: " + msg)
+    });
+}
+
+function delete_callback(client_id, uri, element){
+    body = {
+       "uri": uri
+    }
+    apiCall(PATH_CLIENT+"/"+client_id+"/callbacks", DELETE, body, function(res){
+        element.remove()
+    }, function(status, msg){
+        notify("Failed removing callback " + uri + " for " + client_id + ": " + msg)
+    });
 }
 
 function create_client(){

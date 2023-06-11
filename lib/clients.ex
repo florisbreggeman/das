@@ -54,7 +54,8 @@ defmodule Clients do
       repo = Storage.get()
       query = from c in Clients.CallbackURI,
       where: c.client_id == ^id
-      repo.all(query)
+      result = repo.all(query)
+      Enum.map(result, fn callback -> callback.uri end)
     rescue
       _ -> nil
     end
@@ -64,10 +65,12 @@ defmodule Clients do
     try do
       repo = Storage.get()
       query = from c in Clients.CallbackURI,
-      where: c.id==^client and c.uri==^uri
+      where: c.client_id==^client and c.uri==^uri
       repo.one(query)
     rescue
-      _ -> nil
+      e -> 
+        IO.inspect(e)
+        nil
     end
   end
 end

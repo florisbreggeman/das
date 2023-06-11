@@ -175,6 +175,20 @@ defmodule Admin do
     end)
   end
 
+  delete "/client/:id/callbacks" do
+    Util.basic_query(conn, ["uri"], fn conn, body ->
+      uri = Map.get(body, "uri")
+      {status, msg} = Admin.Client.delete_callbackuri(id, uri)
+      {status, msg} = case status do
+        :ok -> {:ok, "Deleted callback URI"}
+        :not_found -> {:not_found, msg}
+        _ -> {:conflict, Util.parse_ecto_error(msg)}
+      end
+      conn
+      |> put_resp_content_type("text/plain")
+      |> send_resp(status, msg)
+    end)
+  end
 
   get "/client_ldap_area" do
     conn
