@@ -1,0 +1,20 @@
+import Config
+
+#Global settings
+config :das,
+#which type of database to use; optoins are :sqlite, :mysql, or :postgres
+db_type: :sqlite 
+
+#Settings for Postgres or MySQL; uncomment the one which applies
+#config :das, Storage.Postgres
+#config :das, Storage.MySQL,
+hostname: "localhost",
+username: "das",
+database: "das",
+password: "password"
+
+#Settings for sqlite
+config :das, Storage.SQLite,
+#Make sure the path is writable by DAS. Preferably always use absolute paths here.
+database: "/var/lib/das/db.sqlite"
+
