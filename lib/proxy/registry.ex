@@ -38,8 +38,6 @@ defmodule Proxy.Registry do
   end
 
   def set(host, binding) do
-    IO.inspect(host)
-    IO.inspect(binding)
     binding = split_binding(binding)
     holders = Registry.lookup(Proxy.Registry, host)
     unless Enum.empty?(holders) do
