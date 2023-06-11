@@ -48,11 +48,8 @@ defmodule OAuth.Key do
     query = from OAuth.Key.Schema
     repo = Storage.get()
     results = repo.all(query) 
-    IO.inspect(results)
     priv = Enum.filter(results, fn x -> Map.get(x, :type) == "private" end) |> Enum.at(0)
     pub = Enum.filter(results, fn x -> Map.get(x, :type) == "public" end) |> Enum.at(0)
-    IO.inspect(priv)
-    IO.inspect(pub)
     if priv == nil or pub == nil do
       replace(priv, pub)
     end

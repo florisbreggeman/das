@@ -24,6 +24,25 @@ defmodule Router do
     |> send_resp(:ok, "Hello, World!")
   end
 
+  get "/.well-known/openid-configuration" do
+    issuer = Atom.to_string(conn.scheme) <> "://" <> conn.host
+    claims = %{
+      "issuer" => issuer,
+      "authorization_endpoint" => issuer <> "/oauth/authorize",
+      "token_endpoint" => issuer <> "/oauth/token",
+      "userinfo_endpoint" => issuer <> "/oauth/userinfo",
+      "jwks_uri" => issuer <> "/oauth/jwks",
+      "scopes_supported" => ["openid", "email"],
+      "response_types_supported" => ["code"], #TODO expand
+      "grant_types_supported" => ["authorization_code"], #TODO expand?
+      "subject_types_supported" => ["public"], #TODO expand
+      "id_token_signing_alg_values_supported" => ["RS256"],
+    }
+    conn
+    |> put_resp_content_type("application/json")
+    |> send_resp(:ok, Jason.encode!(claims))
+  end
+
   match _ do
     conn
     |> put_resp_content_type("text/plain")

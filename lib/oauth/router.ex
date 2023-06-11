@@ -105,11 +105,26 @@ defmodule OAuth.Router do
               |> send_resp(:bad_request, Jason.encode!{%{error: "invalid_grant", error_description: "Invalid Redirect URI"}})
             true ->
               token = OAuth.Token.generate(%{client: client_id, user: user_id, scope: scope})
+
+              user = Users.get_by_id(user_id)
+              claims = %{
+                sub: user_id,
+                aud: client_id,
+                iss: Atom.to_string(conn.scheme) <> "://" <>  conn.host,
+                given_name: user.given_names,
+                family_name: user.family_name,
+                email: user.email
+              }
+              nonce = Map.get(state, :nonce)
+              claims = if nonce == nil do claims else Map.put(state, :nonce, nonce) end
+              {:ok, id_token, _claims} = OAuth.IDToken.generate_and_sign(claims, OAuth.IDToken.get_signer())
+
               return = %{
                 access_token: token,
                 token_type: "Bearer",
                 expires_in: 4*60*60, #4 hours
-                scope: Enum.join(scope, " ")
+                scope: Enum.join(scope, " "),
+                id_token: id_token
               }
               conn
               |> put_resp_content_type("application/json")
@@ -153,6 +168,21 @@ defmodule OAuth.Router do
         |> put_resp_content_type("application/json")
         |> send_resp(:unauthorized, Jason.encode!(%{error: "Invalid authorization type"}))
     end
+  end
+
+  get "/jwks" do
+    pem = OAuth.Key.get_pub()
+    pem_entry = :public_key.pem_decode(pem) |> Enum.at(0)
+    {_, modulus, pubex} = :public_key.pem_entry_decode(pem_entry)
+    claims = %{
+      kty: "RSA",
+      alg: "RS256",
+      n: modulus,
+      e: pubex,
+    }
+    conn
+    |> put_resp_content_type("application/jwk+json")
+    |> send_resp(:ok, Jason.encode!(claims))
   end
 end
 

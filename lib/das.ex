@@ -35,6 +35,9 @@ defmodule Das do
     #make sure we have the required encryption keys, generate otherwise
     OAuth.Key.ensure()
 
+    #generate and store the signer after the keys have been created
+    Supervisor.start_child(supervisor, {OAuth.IDToken.Signer, nil})
+
     {:ok, supervisor}
   end
 
