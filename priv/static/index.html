@@ -9,6 +9,20 @@
         <link rel="stylesheet" href="css/index.css">
     </head>
     <body>
+        <div id='layout'>
+        <a href='#menu' id='menuLink' class='menu-link'>
+            <span>Menu</span>
+        </a>
+        <div id='menu'>
+            <div class='pure-menu'>
+                <span class='pure-menu-heading'>DAS</span>
+                <ul class='pure-menu-list'>
+                    <li class='pure-menu-item'><a href='users.html' class='pure-menu-link'>Users</a></li>
+                    <li class='pure-menu-item'><a href='clients.html' class='pure-menu-link'>Applications</a></li>
+                    <li class='pure-menu-item'><a id='logout-menu' href='#menu' class='pure-menu-link'>Log out</a></li>
+                </ul>
+            </div>
+        </div>
         <div id='main'>
             <button id='logout' class='pure-button'>Log Out</button>
             <div>
@@ -45,6 +59,7 @@
                 <input type='checkbox' id='totp_checkbox' class='pure-checkbox'></input>
                 <p id='totp'></p>
             </div>
+        </div>
         </div>
         <script type='text/javascript' src='js/util.js'></script>
         <script type='text/javascript' src='js/index.js'></script>

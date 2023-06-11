@@ -18,3 +18,146 @@ body {
 .notifications-good {
     color: #2DC920;
 }
+
+/*
+ * It's all stolen from PureCSS from here
+ */
+#layout,
+#menu,
+menu-link {
+    -webkit-transition: all 0.2s ease-out;
+    -moz-transition: all 0.2s ease-out;
+    -ms-transition: all 0.2s ease-out;
+    -o-transition: all 0.2s ease-out;
+    transition: all 0.2s ease-out;
+}
+
+#layout {
+    position: relative;
+    left: 0;
+    padding-left: 0;
+}
+#layout.active #menu {
+    left: 150px;
+    width: 150px;
+}
+#layout.active .menu-link {
+    left: 150px;
+}
+
+#menu {
+    margin-left: -150px;
+    width: 150px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 1000;
+    background: #191919;
+    overflow-y: auto;
+}
+#menu a {
+    color: #999;
+    border: none;
+    padding: 0.6em 0.6em 0.6em;
+}
+
+#menu .pure-menu,
+#menu .pure-menu ul {
+    border: none;
+    background: transparent;
+}
+
+#menu .pure-menu,
+#menu .pure-menu .menu-item-divided {
+    border-top: 1px solid #333;
+}
+#menu .pure-menu li a:hover,
+#menu .pure-menu li a:focus {
+    background: #333;
+}
+
+#menu .pure-menu-selected,
+#menu .pure-menu-heading {
+    background: #1f8dd6;
+}
+#menu .pure-menu-selected a {
+    color: #fff;
+}
+
+#menu .pure-menu-heading {
+    font-size: 110%;
+    color: #fff;
+    margin: 0;
+}
+
+.menu-link {
+    position: fixed;
+    display: black;
+    top: 0;
+    left: 0;
+    background: rgba(0,0,0,7);
+    font-size: 10px;
+    z-index: 10;
+    width: 2em;
+    height: auto;
+    padding: 2.1em 1.6em;
+}
+
+.menu-link:hover,
+.menu-link:focus {
+    background: #000;
+}
+
+.menu-link span {
+    position: relative,
+    display: block
+}
+.menu-link span,
+.menu-link span:before,
+.menu-link span:after {
+    background-color: #fff;
+    pointer-events: none;
+    width: 100%;
+    height: 0.2em;
+}
+.menu-link span:before,
+.menu-link span:after {
+    position: absolute,
+    margin-top: -0.6em;
+    content: " ";
+}
+.menu-link span:after {
+    margin-top: 0.6em;
+}
+
+@media(min-width: 48em){
+    #main: {
+        padding-left: 2em;
+        padding-right: 2em;
+    }
+    #layout {
+        padding-left: 150px;
+        left: 0;
+    }
+    #menu {
+        left: 150px;
+    }
+    .menu-link {
+        position: fixed;
+        left: 150px;
+        display: none;
+    }
+
+    #layout.active .menu-link {
+        left: 150px;
+    }
+}
+
+@media(max-width: 48em){
+    #layout.active {
+        position:relative;
+        left: 150px;
+    }
+}
+
