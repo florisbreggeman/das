@@ -24,7 +24,10 @@ ldap_port: 389,
 #Altering these settings will have no effect on the functionality of the software, and its advised to leave them alone if you don't know what they represent.
 #The value of these is mostly irrelevant, as DAS will interpret any values as referring to the users table; however, client applications may expect them to be valid LDAP DN components.
 ldap_clients_area: "ou=clients,dc=das,dc=nl",
-ldap_users_area: "ou=users,dc=das,dc=nl"
+ldap_users_area: "ou=users,dc=das,dc=nl",
+#The port to listen to for forward authentication
+#Defaults to 8081
+forward_port: 8081
 
 #Settings for Postgres or MySQL; uncomment the one which applies
 #config :das, Storage.Postgres

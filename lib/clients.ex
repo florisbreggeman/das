@@ -31,6 +31,17 @@ defmodule Clients do
   end
 
   @doc """
+  Get a single client by name
+  """
+  def get_by_name(name) do
+    query = from c in Clients.Client,
+      where: c.name == ^name
+    repo = Storage.get()
+    repo.one(query)
+  end
+
+
+  @doc """
   Verifies that the client has entered the correct credentialso
   Returns nil if incorrect (including if the client does not exist, etc.)
   Returns the client object if credentials are correct.

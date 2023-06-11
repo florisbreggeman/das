@@ -15,6 +15,7 @@ defmodule Router do
   forward "/session", to: Session.Router
   forward "/admin", to: Admin
   forward "/oauth", to: OAuth.Router
+  forward "/forward_auth", to: Forward.Router
 
   plug :match
   plug :dispatch
