@@ -6,29 +6,24 @@ defmodule Session.Router do
   Mostly responsible for logging people in
   """
 
+  plug Session.AccessControl
+
   plug :match
   plug :dispatch
   plug Plug.Parsers, parsers: [:json, :multipart], json_decoder: Jason
 
   get "/whoami" do
-    conn = fetch_session(conn)
     userid = get_session(conn, :userid)
-    if userid == nil do
-      conn
-      |> put_resp_content_type("text/plain")
-      |> send_resp(403, "You are not logged in")
-    else
-      user = Users.get_by_id(userid)
-      conn
-      |> put_resp_content_type("application/json")
-      |> send_resp(:ok, Jason.encode!(%{
-        username: user.username,
-        email: user.email,
-        given_names: user.given_names,
-        family_name: user.family_name,
-        admin: user.admin
-      }))
-    end
+    user = Users.get_by_id(userid)
+    conn
+    |> put_resp_content_type("application/json")
+    |> send_resp(:ok, Jason.encode!(%{
+      username: user.username,
+      email: user.email,
+      given_names: user.given_names,
+      family_name: user.family_name,
+      admin: user.admin
+    }))
   end
 
   post "/login" do
@@ -44,9 +39,16 @@ defmodule Session.Router do
       else
         conn
         |> put_resp_content_type("text/plain")
-        |> send_resp(403, "Unknown username/password combination")
+        |> send_resp(:forbidden, "Unknown username/password combination")
       end
     end)
+  end
+
+  post "/logout" do
+    conn
+    |> configure_session(drop: true)
+    |> put_resp_content_type("text/plain")
+    |> send_resp(:ok, "You have been logged out")
   end
 
   match _ do
