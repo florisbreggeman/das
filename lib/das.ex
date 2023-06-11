@@ -4,6 +4,8 @@ defmodule Das do
 
   use Application
 
+  @default_socket_location "tmp/das_util.sock"
+
   def start(_type, _args) do
     children = [
       Storage,
@@ -20,12 +22,23 @@ defmodule Das do
       children
     end
 
+    children = if Application.get_env(:das, :util_socket, false) do
+      File.rm(Application.get_env(:das, :util_socket_location, @default_socket_location))
+      [{Plug.Cowboy, scheme: :http, plug: UtilSocket, options: [ip: {:local, Application.get_env(:das, :util_socket_location, @default_socket_location)}, port: 0]} | children]
+    else
+      children
+    end
+
     opts = [strategy: :one_for_one, name: Das.Supervisor]
 
     #This line is required for the sessions to work
     :ets.new(:session, [:named_table, :public, read_concurrency: true])
 
     {:ok, supervisor} = Supervisor.start_link(children, opts)
+
+    if Application.get_env(:das, :util_socket, false) do
+      File.chmod(Application.get_env(:das, :util_socket_location, @default_socket_location), Application.get_env(:das, :util_socket_permissions, 200))
+    end
 
     #just to easily populate the db
     repo = Storage.get()

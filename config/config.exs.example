@@ -29,6 +29,13 @@ ldap_users_area: "ou=users,dc=das,dc=nl",
 #Defaults to 8081
 forward_port: 8081
 
+#Enable the Utility socket? Defaults to false
+util_socket: false,
+#The location of the utility socket. Defaults to "/tmp/das_util"
+util_socket_location: "/tmp/das_util.sock",
+#The file permissions on the utility socket. Defaults to 200.
+util_socket_permissions: 200
+
 #Settings for Postgres or MySQL; uncomment the one which applies
 #config :das, Storage.Postgres
 #config :das, Storage.MySQL,
