@@ -13,8 +13,11 @@ defmodule Session do
   end
 
   def get(_conn, cookie, registry) do
-    [{_pid, data}] = Registry.lookup(registry, cookie)
-    data
+    return = Registry.lookup(registry, cookie)
+    case return do
+      [{_pid, data}] -> {cookie, data}
+      [] -> {nil, %{}}
+    end
   end
 
   def put(_conn, nil, data, registry) do
