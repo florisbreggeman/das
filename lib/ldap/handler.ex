@@ -232,48 +232,6 @@ defmodule LDAP.Handler do
     end
   end
 
-  def build_query(filters, query, type \\ :where)
-
-  def build_query({:and, filters}, query, _type) do
-    Enum.reduce(filters, query, fn filter, query ->
-      build_query(filter, query, :where)
-    end)
-  end
-
-  def build_query({:or, filters}, query, _type) do
-    Enum.reduce(filters, query, fn filter, query ->
-      build_query(filter, query, :or_where)
-    end)
-  end
-
-  def build_query({:equalityMatch, {_attributeValueAssertion, field, value}}, query, :where) do
-    field = field_to_atom(field)
-    if field == nil do
-      query
-    else
-      from query, [{:where, ^Keyword.new([{field, value}])}]
-    end
-  end
-
-  def build_query({:equalityMatch, {_attributeValueAssertion, field, value}}, query, :or_where) do
-    field = field_to_atom(field)
-    if field == nil do
-      query
-    else
-      from query, [{:or_where, ^Keyword.new([{field, value}])}]
-    end
-  end
-
-  def build_query({:not, _filter}, query, _type) do
-    #not yet supported
-    query
-  end
-
-  def build_query({:substrings, _substrings}, query, _type) do
-    #not yet supported
-    query
-  end
-
   _doc = """
   Convert an unverified input string to an atom if and only if it corresponds to a field of the user object
   Can be used to prevent a denial of service attack aiming for the atom limit
