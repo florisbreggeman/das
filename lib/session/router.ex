@@ -66,12 +66,20 @@ defmodule Session.Router do
     Util.basic_query(conn, ["username", "password"], fn conn, body -> 
       user = Users.verify(Map.get(body, "username", ""), Map.get(body, "password", ""))
       if user != nil do
-        conn
-        |> fetch_session()
-        |> put_session(:userid, user.id)
-        |> put_session(:username, user.username)
-        |> put_resp_content_type("text/plain")
-        |> send_resp(:ok, "You are logged in!")
+        if user.totp_secret == nil do
+          conn
+          |> fetch_session()
+          |> put_session(:userid, user.id)
+          |> put_session(:username, user.username)
+          |> put_resp_content_type("text/plain")
+          |> send_resp(:ok, "You are logged in!")
+        else
+          conn
+          |> fetch_session()
+          |> put_session(:tentative_userid, user.id)
+          |> put_resp_content_type("text/plain")
+          |> send_resp(:accepted, "Awaiting TOTP")
+        end
       else
         conn
         |> put_resp_content_type("text/plain")
@@ -79,6 +87,27 @@ defmodule Session.Router do
       end
     end)
   end
+
+  post "/totp_login" do
+    Util.basic_query(conn, ["code"], fn conn, body ->
+      code = Map.get(body, "code")
+      conn = fetch_session(conn)
+      userid = get_session(conn, :tentative_userid)
+      user = Users.get_by_id(userid)
+      if NimbleTOTP.valid?(user.totp_secret, code) do
+        conn
+        |> put_session(:userid, user.id)
+        |> put_session(:username, user.username)
+        |> put_resp_content_type("text/plain")
+        |> send_resp(:ok, "You are logged in!")
+      else
+        conn
+        |> put_resp_content_type("text/plain")
+        |> send_resp(:forbidden, "Incorrect code")
+      end
+    end)
+  end
+
 
   post "/logout" do
     conn

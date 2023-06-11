@@ -18,7 +18,7 @@ defmodule Session.AccessControl do
   def call(conn, _opts) do
     path = conn.request_path
     #don't check access control in case the user is just trying to log in
-    if path == "/session/login" do
+    if path == "/session/login" or path == "/session/totp_login" do
       conn 
     else
       conn = Plug.Conn.fetch_session(conn)
