@@ -11,7 +11,21 @@ defmodule Das do
 
     opts = [strategy: :one_for_one, name: Das.Supervisor]
 
-    {:ok, _supervisor} = Supervisor.start_link(children, opts)
+    {:ok, supervisor} = Supervisor.start_link(children, opts)
+
+    #just to easily populate the db
+    repo = Storage.get()
+    user = %Users.User{
+      username: "floris",
+      given_names: "Floris Tenzin",
+      family_name: "Breggeman",
+      email: "info@sfbtech.nl",
+      admin: true,
+      password: Bcrypt.hash_pwd_salt("admin")
+    }
+    repo.insert(user)
+
+    {:ok, supervisor}
   end
 
 end
