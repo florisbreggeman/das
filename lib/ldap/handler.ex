@@ -2,7 +2,8 @@ defmodule LDAP.Handler do
 
   @dont_include [:admin, :password]
   @no_permission {:LDAPResult, :insufficientAccessRights, "", "You do not have a client bind", :asn1_NOVALUE}
-  @unsupported {:LDAPResult, :insufficientAccessRights, "", "This feature is not supported", :asn1_NOVALUE}
+  @unsupported_text "Operation not supported"
+  @unsupported {:LDAPResult, :insufficientAccessRights, "", @unsupported_text, :asn1_NOVALUE}
 
   import Ecto.Query
   require Logger
@@ -154,9 +155,21 @@ defmodule LDAP.Handler do
     {nil, bind}
   end
 
-  #handle add requests (with a no permission)
+  #handle requests that are not supported
   def handle({:addRequest, _}, bind) do
     {{:addResponse, @unsupported}, bind}
+  end
+  def handle({:delRequest, _}, bind) do
+    {{:delResponse, @unsupported}, bind}
+  end
+  def handle({:modifyRequest, _}, bind) do
+    {{:modifyResponse, @unsupported}, bind}
+  end
+  def handle({:modDNRequest, _}, bind) do
+    {{:modDNResponse, @unsupported}, bind}
+  end
+  def handle({:extendedReq, _}, bind) do
+    {{:extendedResp, {:ExtendedResp, :insufficientAccessRights, "", @unsupported_text, :asn1_NOVALUE, :asn1_NOVALUE, :asn1_NOVALUE}}, bind}
   end
 
   # unknown requests, also handles unbinds
