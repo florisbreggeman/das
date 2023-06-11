@@ -73,64 +73,72 @@ defmodule OAuth.Router do
       _ -> Plug.Conn.Query.decode(body)
     end
 
-    case Map.get(body, "grant_type", "authorization_code") |> String.downcase() do
-      _ -> #default: authorization_code
-        secret = Map.get(body, "client_secret")
-        secret = if secret == nil do Map.get(headers, "authorization", "") |> String.split() |> Enum.at(1) else secret end #allow for authorization via HTTP headers if not provided in body
-        code = Map.get(body, "code")
-        state = OAuth.Code.redeem(code)
-        if state == nil do
-          conn
-          |> put_resp_content_type("application/json")
-          |> send_resp(:bad_request, Jason.encode!(%{error: "invalid_grant"}))
-        else
-          client_id = Map.get(state, :client)
-          redirect_uri = Map.get(state, :redirect)
-          user_id = Map.get(state, :user)
-          scope = Map.get(state, :scope, ["openid"])
-          #The line below uses the client id from the code state, and the secret from this request.
-          #This verifies two things:
-          # 1. The client secret matches the client id
-          # 2. The code was actually issued to the current client
-          client = Clients.verify(client_id, secret)
-          cond do
-            client == nil ->
-              conn
-              |> put_resp_content_type("application/json")
-              |> put_resp_header("WWW-Authenticate", "Basic")
-              |> send_resp(:unauthorized, Jason.encode!(%{error: "invalid_client"}))
-            redirect_uri != Map.get(body, "redirect_uri") -> #if redirect_uri was not present in this request and the access code request, both these values will be nil 
-              conn
-              |> put_resp_content_type("application/json")
-              |> send_resp(:bad_request, Jason.encode!{%{error: "invalid_grant", error_description: "Invalid Redirect URI"}})
-            true ->
-              token = OAuth.Token.generate(%{client: client_id, user: user_id, scope: scope})
-
-              user = Users.get_by_id(user_id)
-              claims = %{
-                sub: user_id,
-                aud: client_id,
-                iss: Atom.to_string(conn.scheme) <> "://" <>  conn.host,
-                given_name: user.given_names,
-                family_name: user.family_name,
-                email: user.email
-              }
-              nonce = Map.get(state, :nonce)
-              claims = if nonce == nil do claims else Map.put(state, :nonce, nonce) end
-              {:ok, id_token, _claims} = OAuth.IDToken.generate_and_sign(claims, OAuth.IDToken.get_signer())
-
-              return = %{
-                access_token: token,
-                token_type: "Bearer",
-                expires_in: 4*60*60, #4 hours
-                scope: Enum.join(scope, " "),
-                id_token: id_token
-              }
-              conn
-              |> put_resp_content_type("application/json")
-              |> send_resp(:ok, Jason.encode!(return))
+    #verify the client first
+    client_id = Map.get(body, "client_id")
+    secret = Map.get(body, "client_secret")
+    secret = if secret == nil do Map.get(headers, "authorization", "") |> String.split() |> Enum.at(1) else secret end #allow for authorization via HTTP headers if not provided in body
+    if Clients.verify(client_id, secret) do
+      case Map.get(body, "grant_type", "authorization_code") |> String.downcase() do
+        _ -> #default: authorization_code
+                  code = Map.get(body, "code")
+          state = OAuth.Code.redeem(code)
+          if state == nil do
+            conn
+            |> put_resp_content_type("application/json")
+            |> send_resp(:bad_request, Jason.encode!(%{error: "invalid_grant"}))
+          else
+            client_id = Map.get(state, :client)
+            redirect_uri = Map.get(state, :redirect)
+            user_id = Map.get(state, :user)
+            scope = Map.get(state, :scope, ["openid"])
+            #The line below uses the client id from the code state, and the secret from this request.
+            #This verifies two things:
+            # 1. The client secret matches the client id
+            # 2. The code was actually issued to the current client
+            client = Clients.verify(client_id, secret)
+            cond do
+              client == nil ->
+                conn
+                |> put_resp_content_type("application/json")
+                |> put_resp_header("WWW-Authenticate", "Basic")
+                |> send_resp(:unauthorized, Jason.encode!(%{error: "invalid_client"}))
+              redirect_uri != Map.get(body, "redirect_uri") -> #if redirect_uri was not present in this request and the access code request, both these values will be nil 
+                conn
+                |> put_resp_content_type("application/json")
+                |> send_resp(:bad_request, Jason.encode!{%{error: "invalid_grant", error_description: "Invalid Redirect URI"}})
+              true ->
+                token = OAuth.Token.generate(%{client: client_id, user: user_id, scope: scope})
+  
+                user = Users.get_by_id(user_id)
+                claims = %{
+                  sub: user_id,
+                  aud: client_id,
+                  iss: Atom.to_string(conn.scheme) <> "://" <>  conn.host,
+                  given_name: user.given_names,
+                  family_name: user.family_name,
+                  email: user.email
+                }
+                nonce = Map.get(state, :nonce)
+                claims = if nonce == nil do claims else Map.put(state, :nonce, nonce) end
+                {:ok, id_token, _claims} = OAuth.IDToken.generate_and_sign(claims, OAuth.IDToken.get_signer())
+  
+                return = %{
+                  access_token: token,
+                  token_type: "Bearer",
+                  expires_in: 4*60*60, #4 hours
+                  scope: Enum.join(scope, " "),
+                  id_token: id_token
+                }
+                conn
+                |> put_resp_content_type("application/json")
+                |> send_resp(:ok, Jason.encode!(return))
+            end
           end
-        end
+      end
+    else
+      conn
+      |> put_resp_content_type("text/plain")
+      |> send_resp(:forbidden, "Invalid client credentials")
     end
   end
 
