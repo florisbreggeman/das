@@ -34,7 +34,7 @@ defmodule Forward.Router do
       userid == nil -> #we redirect to the login portal
         current_url = "forward_auth/create_session?scheme=#{scheme}&host="<>URI.encode_www_form(host)<>"&uri="<>URI.encode_www_form(uri)
         conn
-        |> put_resp_header("location", "login.html?redirect="<>URI.encode_www_form(current_url))
+        |> put_resp_header("location", "../login.html?redirect="<>URI.encode_www_form(current_url))
         |> send_resp(:found, "")
       true -> 
         state = %{
@@ -73,7 +73,7 @@ defmodule Forward.Router do
       end
       if code == nil do
         IO.inspect(headers)
-        #no user id, and no code; that's a bad request, let Nginx handle the redirect
+        #no user id, and no code; that's an unauthenticated request, let Nginx handle the redirect
         conn
         |> send_resp(:unauthorized, "")
       else
@@ -89,12 +89,17 @@ defmodule Forward.Router do
           #verify that the data in the code state equal the received headers
           if Enum.all?([scheme: scheme, host: host], fn {key, value} -> Map.get(state, key) == value end) do
           #code parses, put everything in the session and return ok
+            userid = Map.get(state, :userid)
+            user = Users.get_by_id(userid)
             conn
-            |> put_session(:userid, Map.get(state, :userid))
+            |> put_session(:userid, userid)
+            |> put_session(:user, user)
             |> put_session(:scheme, scheme)
             |> put_session(:host, host)
             |> put_session(:forwarded_for, forwarded_for)
             |> put_session(:real_ip, real_ip)
+            |> put_resp_header("remote-user", user.username)
+            |> put_resp_header("remote-email", user.email)
             |> send_resp(:ok, "")
           else
             Logger.debug("Forward auth: Authorization code #{code} found mismatch between original request and redirected request; scheme = {#{scheme}, "<>Map.get(state, :scheme, "nil")<>"}, host = {#{host}, "<>Map.get(state, :host, "nil")<>"}")
@@ -108,8 +113,10 @@ defmodule Forward.Router do
       #there's already a session with a userid, verify that the data in the session matches the received headers
       #Line below generates a list of tuples matching atoms referring to the session data to a header value (in a variable), and checks if they are all the same
       if Enum.all?([scheme: scheme, host: host, forwarded_for: forwarded_for, real_ip: real_ip], fn {key, value} -> get_session(conn, key) == value end) do
-
+        user = get_session(conn, :user)
         conn
+        |> put_resp_header("remote-user", user.username)
+        |> put_resp_header("remote-email", user.email)
         |> send_resp(:ok, "")
       else
         Logger.debug("Forward auth: session for userid #{userid} does not match received headers\r\n" <> Kernel.inspect(headers) <> "\r\n\r\n" <> Kernel.inspect(get_session(conn)))
