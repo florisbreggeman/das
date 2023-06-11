@@ -23,7 +23,20 @@ defmodule Session.AdminControl do
     options
   end
 
-  def call(conn, _opts) do
+  def call(conn, opts) do
+    #This function only checks if the requests comes from the utility socket, actual logic is handled by process
+    #We check for the socket by two methods: firstly, we check if the host is localhost. Secondly, we check that the path does not start with /admin
+    if conn.host == "localhost" do
+      start = String.slice(conn.request_path, 0, 6)
+      if start == "/admin" do
+        process(conn, opts)
+      else
+        conn
+      end
+    end
+  end
+
+  def process(conn, _opts) do
     path = conn.request_path
     #don't check access control in case the user is just trying to log in
     if path == "/login" do

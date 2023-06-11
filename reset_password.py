@@ -13,7 +13,6 @@ if len(args) > 1:
 session = requests_unixsocket.Session()
 
 url_socket = urllib.parse.quote(socket, safe='')
-print(url_socket)
 r = session.get("http+unix://"+url_socket+"/user/")
 
 print("Which user would you like to change the password for?")

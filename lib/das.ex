@@ -24,7 +24,7 @@ defmodule Das do
 
     children = if Application.get_env(:das, :util_socket, false) do
       File.rm(Application.get_env(:das, :util_socket_location, @default_socket_location))
-      [{Plug.Cowboy, scheme: :http, plug: UtilSocket, options: [ip: {:local, Application.get_env(:das, :util_socket_location, @default_socket_location)}, port: 0]} | children]
+      [{Plug.Cowboy, scheme: :http, plug: Admin, options: [ip: {:local, Application.get_env(:das, :util_socket_location, @default_socket_location)}, port: 0]} | children]
     else
       children
     end
