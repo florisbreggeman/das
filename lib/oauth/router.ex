@@ -42,7 +42,7 @@ defmodule OAuth.Router do
       redirect_object == nil ->
         conn
         |> put_resp_content_type("text/plain")
-        |> send_resp(:bad_request, "This is an unregistered redirect URI. Please contact your system administrator")
+        |> send_resp(:bad_request, "This request uses  an unregistered callback URI. If you are the system administrator, please register the callback URI #{redirect} for the application #{client.name}")
       true ->
         case Enum.at(response_types, 0) do
           "code" ->
