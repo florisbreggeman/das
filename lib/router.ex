@@ -21,8 +21,15 @@ defmodule Router do
   plug :dispatch
   
   get "/" do
+    conn = Plug.Conn.fetch_session(conn)
+    location = if Plug.Conn.get_session(conn, :userid) == nil do
+      "login.html"
+    else
+      "index.html"
+    end
     conn
-    |> send_resp(:ok, "Hello, World!")
+    |> put_resp_header("location", location)
+    |> send_resp(:found, "")
   end
 
   get "/.well-known/openid-configuration" do
