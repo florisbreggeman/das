@@ -80,7 +80,8 @@ defmodule OAuth.Router do
     if Clients.verify(client_id, secret) == nil do
       conn
       |> put_resp_content_type("text/plain")
-      |> send_resp(:forbidden, "Invalid client credentials")
+      |> put_resp_header("WWW-Authenticate", "Basic")
+      |> send_resp(:unauthorized, "Invalid client credentials")
     else
       case Map.get(body, "grant_type", "authorization_code") |> String.downcase() do
         _ -> #default: authorization_code
@@ -91,17 +92,12 @@ defmodule OAuth.Router do
             |> put_resp_content_type("application/json")
             |> send_resp(:bad_request, Jason.encode!(%{error: "invalid_grant"}))
           else
-            client_id = Map.get(state, :client)
+            client_id_state = Map.get(state, :client)
             redirect_uri = Map.get(state, :redirect)
             user_id = Map.get(state, :user)
             scope = Map.get(state, :scope, ["openid"])
-            #The line below uses the client id from the code state, and the secret from this request.
-            #This verifies two things:
-            # 1. The client secret matches the client id
-            # 2. The code was actually issued to the current client
-            client = Clients.verify(client_id, secret)
             cond do
-              client == nil ->
+              client_id_state != client_id ->
                 conn
                 |> put_resp_content_type("application/json")
                 |> put_resp_header("WWW-Authenticate", "Basic")
