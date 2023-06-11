@@ -8,6 +8,7 @@ defmodule Storage.MySQL.Migrations.CreateUser do
       add :family_name, :string
       add :email, :string
       add :admin, :boolean
+      add :password, :string
     end
   end
 end
