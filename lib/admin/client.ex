@@ -15,6 +15,9 @@ defmodule Admin.Client do
     client = %Clients.Client{}
     secret = :crypto.strong_rand_bytes(32) |> Base.encode16()
     data = Map.put(data, "secret", secret)
+    if Map.get(data, "type") == "proxy" do
+      Proxy.Registry.set(Map.get(data, "url"), Map.get(data, "destination"))
+    end
     cast(client, data, [:type, :name, :secret, :url, :destination])
     |> validate_required([:type, :name])
     |> validate_inclusion(:type, ["ldap", "oauth", "forward", "proxy"])
@@ -34,6 +37,14 @@ defmodule Admin.Client do
       if client == nil do
         {:not_found, "No client with id #{id}"}
       else
+        if client.type == "proxy" and Map.has_key?(data, "destination") do
+          if Map.has_key?(data, "url") do
+            Proxy.Registry.delete(client.url)
+            Proxy.Registry.set(Map.get(data, "url"), Map.get(data, "destination"))
+          else
+            Proxy.Registry.set(client.url, Map.get(data, "destination"))
+          end
+        end
         cast(client, data, [:name, :url, :destination])
         |> repo.update()
       end
@@ -47,6 +58,9 @@ defmodule Admin.Client do
       if client == nil do
         {:not_found, "No client with id #{id}"}
       else
+        if client.type == "proxy" do
+          Proxy.Registry.delete(client.url)
+        end
         repo.delete(client)
       end
     else {:not_found, "invalid id format"} end

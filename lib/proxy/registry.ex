@@ -39,11 +39,7 @@ defmodule Proxy.Registry do
 
   def set(host, binding) do
     binding = split_binding(binding)
-    holders = Registry.lookup(Proxy.Registry, host)
-    unless Enum.empty?(holders) do
-      [{pid, _dest} | _] = holders
-      send(pid, :end)
-    end
+    delete(host)
     spawn(fn ->
       Registry.register(Proxy.Registry, host, binding)
       loop_func()
@@ -63,6 +59,14 @@ defmodule Proxy.Registry do
     else
       [{_pid, dest} | _] = holders
       dest
+    end
+  end
+
+  def delete(host) do
+    holders = Registry.lookup(Proxy.Registry, host)
+    unless Enum.empty?(holders) do
+      [{pid, _dest} | _] = holders
+      send(pid, :end)
     end
   end
 
