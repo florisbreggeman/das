@@ -87,8 +87,7 @@ defmodule LDAP.Handler do
     response = {:searchResDone, @no_permission}
     {response, nil}
   end
-  def handle({:searchRequest, {:SearchRequest, _domain, _subtree, _deref, size, _time, _typesonly, filters, _attributes}}, bind) do
-    #TODO: actually use the attribute selection
+  def handle({:searchRequest, {:SearchRequest, _domain, _subtree, _deref, size, _time, _typesonly, filters, attributes}}, bind) do
     query = from Users.User
     query = build_query(filters, query)
     query = if size > 0 do
@@ -96,23 +95,31 @@ defmodule LDAP.Handler do
     else
       query
     end
+
+    #take the correct attributes to select
+    attributes = if attributes == [] do
+      Users.User.__schema__(:fields)
+    else
+      Enum.map(attributes, fn field -> field_to_atom(field) end)
+      |> Enum.filter(fn x -> x != nil end)
+    end
+    #explicitly remove attributes we dont want to send
+    attributes = Enum.filter(attributes, fn field -> not Enum.member?(@dont_include, field) end)
+
     repo = Storage.get()
     users = repo.all(query)
+    #We want to return one searchResEntry message for each user, and a searchResDone once we've search all users
     #Below we see the most efficient way to put a predefined value at the end of a generated list (prepending is very efficient, appending is not)
     responses = [{:searchResDone, {:LDAPResult, :success, "", "", :asn1_NOVALUE}}]
     responses = Enum.reduce(users, responses, fn user, responses ->
       [{:searchResEntry, {:SearchResEntry, "username=" <> user.username <> "," <> Application.get_env(:das, :ldap_users_area, "ou=users,dc=das,dc=nl"), 
-        Enum.map(Users.User.__schema__(:fields), fn field ->
-          if Enum.member?(@dont_include, field) do
+        Enum.map(attributes, fn field ->
+          value = Map.get(user, field)
+          value = if field == :id do Integer.to_string(value) else value end
+          if value == nil do
             nil
           else
-            value = Map.get(user, field)
-            value = if field == :id do Integer.to_string(value) else value end
-            if value == nil do
-              nil
-            else
-              {:partialAttribute, Atom.to_string(field), [value]}
-            end
+            {:partialAttribute, Atom.to_string(field), [value]}
           end
         end)
         |> Enum.filter(fn x -> x != nil end) 
