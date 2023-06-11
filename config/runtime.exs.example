@@ -12,6 +12,9 @@ bind_port: 8080
 #bind_ip: {:local, "/var/run/das.sock"}
 #bind_port: 0
 
+#How long a session lasts, in minutes. Default: 8*60
+session_timeout: 8*60,
+
 #LDAP settings
 #The IP and port for the LDAP server to listen on. Mind the syntax for the IP
 #Default to 127.0.0.1:389

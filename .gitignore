@@ -97,5 +97,6 @@ tags
 
 # ---> Application specific
 config/config.exs
+config/runtime.exs
 mix.lock
 db/*

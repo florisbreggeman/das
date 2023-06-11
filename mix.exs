@@ -10,6 +10,12 @@ defmodule Das.MixProject do
       deps: deps(),
       config_providers: [
         {Config.Reader, "config/config.exs"}
+      ],
+      releases: [
+        das: [
+          version: "1.0",
+          applications: [das: :permanent]
+        ]
       ]
     ]
   end
