@@ -1,4 +1,5 @@
 const PATH_USER = "admin/user";
+const PATH_LOGOUT = "session/logout";
 
 function add_field(description, value_name, value, box, element_id, disabled=false){
     let description_element = document.createElement('label');
@@ -172,6 +173,18 @@ function delete_user(id){
     });
 }
 
+function logout(){
+    apiCall(PATH_LOGOUT, POST, null, function(res){
+        window.location.replace("login.html");
+    }, function(status, res){
+        if(status == 403){
+            window.location.replace("login.html?redirect=index.html");
+        }else{
+            alert("Unknown error logging out: " + String(res))
+        }
+    });
+}
+
 document.addEventListener("DOMContentLoaded", function(event) {
     Jackbox.init();
 
@@ -186,6 +199,9 @@ document.addEventListener("DOMContentLoaded", function(event) {
     onEnter(name_field, create_user);
     onEnter(password_field, create_user);
     onEnter(confirm_field, create_user);
+
+    let logout_link = document.getElementById('logout-menu');
+    logout_link.addEventListener("click", logout);
 
     document.getElementById("create_user").addEventListener("click", create_user);
 

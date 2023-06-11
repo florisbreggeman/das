@@ -1,5 +1,6 @@
 const PATH_CLIENT = "admin/client";
 const PATH_LDAP_AREA = "admin/client_ldap_area";
+const PATH_LOGOUT = "session/logout";
 
 function add_field(description, value_name, value, box, item_id, disabled=false){
     let description_element = document.createElement('label');
@@ -369,6 +370,18 @@ function set_url_placeholder(){
     }
 }
 
+function logout(){
+    apiCall(PATH_LOGOUT, POST, null, function(res){
+        window.location.replace("login.html");
+    }, function(status, res){
+        if(status == 403){
+            window.location.replace("login.html?redirect=index.html");
+        }else{
+            alert("Unknown error logging out: " + String(res))
+        }
+    });
+}
+
 
 
 document.addEventListener("DOMContentLoaded", function(event) {
@@ -381,6 +394,9 @@ document.addEventListener("DOMContentLoaded", function(event) {
     document.getElementById("type").addEventListener("change", set_url_placeholder);
 
     load_ldapArea();
+
+    let logout_link = document.getElementById('logout-menu');
+    logout_link.addEventListener("click", logout);
 
     load();
 
