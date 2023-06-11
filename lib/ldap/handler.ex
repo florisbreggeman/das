@@ -89,7 +89,8 @@ defmodule LDAP.Handler do
   end
   def handle({:searchRequest, {:SearchRequest, _domain, _subtree, _deref, size, _time, _typesonly, filters, attributes}}, bind) do
     query = from Users.User
-    query = build_query(filters, query)
+    where = build_where(filters)
+    query = Map.put(query, :wheres, [where])
     query = if size > 0 do
       from query, limit: ^size
     else
@@ -187,6 +188,50 @@ defmodule LDAP.Handler do
     {nil, :close}
   end
 
+  def build_where(filter) do
+    %Ecto.Query.BooleanExpr{
+    op: :and,
+    expr: build_where_part(filter),
+    file: "lib/ldap/handler.ex",
+    line: 191, #hardcoding the line number in the file, what could go wrong?
+    params: [],
+    subqueries: []
+    }
+  end
+
+  def build_where_part({:equalityMatch, {_, field, value}}) do
+    field = field_to_atom(field)
+    value = if field == :id do String.to_integer(value) else value end
+    if field == nil do
+      nil
+    else
+      {:==, [], 
+        [
+          {{:., [], [{:&, [], [0]}, field]}, [], []},
+          %Ecto.Query.Tagged{tag: nil, type: {0, field}, value: value}
+        ]}
+    end
+  end
+
+  def build_where_part({:and, filters}) do
+    build_andor_part({:and, filters})
+  end
+  def build_where_part({:or, filters}) do
+    build_andor_part({:or, filters})
+  end
+
+  def build_andor_part({type, filters}) do
+    wheres = Enum.map(filters, fn filter ->
+      build_where_part(filter)
+    end)
+    |> Enum.filter(fn x -> x != nil end)
+    case Enum.count(wheres) do
+      0 -> nil
+      1 -> Enum.at(wheres, 0)
+      2 -> {type, [], wheres}
+    end
+  end
+
   def build_query(filters, query, type \\ :where)
 
   def build_query({:and, filters}, query, _type) do
@@ -217,6 +262,16 @@ defmodule LDAP.Handler do
     else
       from query, [{:or_where, ^Keyword.new([{field, value}])}]
     end
+  end
+
+  def build_query({:not, _filter}, query, _type) do
+    #not yet supported
+    query
+  end
+
+  def build_query({:substrings, _substrings}, query, _type) do
+    #not yet supported
+    query
   end
 
   _doc = """
