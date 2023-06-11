@@ -87,6 +87,58 @@ defmodule Session.Router do
     |> send_resp(:ok, "You have been logged out")
   end
 
+  get "/totp" do
+    userid = get_session(conn, :userid)
+    user = Users.get_by_id(userid)
+    if user.totp_secret == nil do
+      conn
+      |> put_resp_content_type("text/plain")
+      |> send_resp(:not_found, "TOTP is not enabled")
+    else
+      totp_url = NimbleTOTP.otpauth_uri("DAS:"<>user.username, user.totp_secret, issuer: Application.get_env(:das, :home, "DAS"))
+      svg = EQRCode.encode(totp_url) |> EQRCode.svg()
+      conn
+      |> put_resp_content_type("image/svg+xml")
+      |> send_resp(:ok, svg)
+    end
+  end
+
+  post "/totp" do
+    userid = get_session(conn, :userid)
+    user = Users.get_by_id(userid)
+    if user.totp_secret == nil do
+      secret = NimbleTOTP.secret()
+      repo = Storage.get()
+      Ecto.Changeset.cast(user, %{totp_secret: secret}, [:totp_secret])
+      |> repo.update()
+      conn
+      |> put_resp_content_type("text/plain")
+      |> send_resp(:ok, "Enabled TOTP")
+    else
+      conn
+      |> put_resp_content_type("text/plain")
+      |> send_resp(:conflict, "TOTP is already enabled")
+    end
+  end
+
+  delete "/totp" do
+    userid = get_session(conn, :userid)
+    user = Users.get_by_id(userid)
+    if user.totp_secret == nil do
+      conn
+      |> put_resp_content_type("text/plain")
+      |> send_resp(:conflict, "TOTP is already disabled")
+    else
+      repo = Storage.get()
+      Ecto.Changeset.cast(user, %{totp_secret: nil}, [:totp_secret])
+      |> repo.update()
+      conn
+      |> put_resp_content_type("tex/plain")
+      |> send_resp(:ok, "Disabled TOTP")
+    end
+  end
+  
+
   match _ do
     conn
     |> put_resp_content_type("text/plain")
