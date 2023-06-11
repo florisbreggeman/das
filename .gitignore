@@ -93,3 +93,6 @@ tags
 # Persistent undo
 [._]*.un~
 
+# ---> Application specific
+config/config.exs
+mix.lock

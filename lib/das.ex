@@ -1,18 +1,17 @@
 defmodule Das do
-  @moduledoc """
-  Documentation for `Das`.
-  """
 
-  @doc """
-  Hello world.
+  require Logger
 
-  ## Examples
+  use Application
 
-      iex> Das.hello()
-      :world
+  def start(_type, _args) do
+    children = [
+      Storage
+    ]
 
-  """
-  def hello do
-    :world
+    opts = [strategy: :one_for_one, name: Das.Supervisor]
+
+    {:ok, _supervisor} = Supervisor.start_link(children, opts)
   end
+
 end
