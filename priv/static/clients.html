@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Hello, World!</title>
+        <meta charset="UTF-8">
+    </head>
+    <body>
+        <div id='main'>
+            <h1>Administer Client Applications</h1>
+            <p id='notifications'></p>
+            <h2>Add new client application</h2>
+            <p>
+            <input type="text" id="name" placeholder="name"></input><br/>
+            <select id="type">
+                <option value="oauth">OAuth</option>
+                <option value="ldap">LDAP</option>
+                <option value="proxy">Reverse Proxy</option>
+            </select>
+            <button id="create_client">Add Client Application</button>
+            </p>
+            <h2>Current Client Applications</h2>
+            <ul id='clients_list'>
+
+            </ul>
+        <script type='text/javascript' src='js/util.js'></script>
+        <script type='text/javascript' src='js/clients.js'></script>
+    </body>
+</html>

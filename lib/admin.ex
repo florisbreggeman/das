@@ -28,12 +28,12 @@ defmodule Admin do
 
   get "/user/:id" do
     user = Admin.User.get(id)
-    {status, msg} = case user do
-      nil -> {:not_found, "No user with id #{id}"}
-      _ -> {:ok, Jason.encode!(user)}
+    {status, msg, content_type} = case user do
+      nil -> {:not_found, "No user with id #{id}", "text/plain"}
+      _ -> {:ok, Jason.encode!(user), "application/json"}
     end
     conn
-    |> put_resp_content_type("application/json")
+    |> put_resp_content_type(content_type)
     |> send_resp(status, msg)
   end
 
@@ -62,7 +62,7 @@ defmodule Admin do
     {status, msg} = case status do
       :ok -> {:ok, "Deleted user"}
       :not_found -> {:not_found, msg}
-      _ -> {:conflict, inspect(msg)}
+      _ -> {:conflict, Util.parse_ecto_error(msg)}
     end
     conn
     |> put_resp_content_type("text/plain")
@@ -80,6 +80,73 @@ defmodule Admin do
       |> put_resp_content_type("application/json")
       |> send_resp(:ok, Jason.encode!(%{password: new_password}))
     end
+  end
+
+  get "/client" do
+    conn
+    |> put_resp_content_type("application/json")
+    |> send_resp(:ok, Jason.encode!(Clients.get_all()))
+  end
+
+  post "/client" do
+    Util.basic_query(conn, ["name"], fn conn, body -> 
+      {status, msg} = Admin.Client.post(body)
+      {status, msg} = case status do
+        :ok -> {:ok, "Added client"}
+        _ -> {:conflict, Util.parse_ecto_error(msg)}
+      end
+      conn
+      |> put_resp_content_type("text/plain")
+      |> send_resp(status, msg)
+    end)
+  end
+
+  get "/client/:id" do
+    client = Admin.Client.get(id)
+    {status, msg, content_type} = case client do
+      nil -> {:not_found, "No client with id #{id}", "text/plain"}
+      _ -> {:ok, Jason.encode!(client), "application/json"}
+    end
+    conn
+    |> put_resp_content_type(content_type)
+    |> send_resp(status, msg)
+  end
+
+  put "/client/:id" do
+    Util.basic_query(conn, [], fn conn, body ->
+      {status, msg} = Admin.Client.put(id, body)
+      {status, msg} = case status do
+        :ok -> {:ok, "Updated client"}
+        :not_found -> {status, msg}
+        _ -> {:conflict, Util.parse_ecto_error(msg)}
+      end
+      conn
+      |> put_resp_content_type("text/plain")
+      |> send_resp(status, msg)
+    end)
+  end
+  
+  delete "/client/:id" do
+    {status, msg} = Admin.Client.delete(id)
+    {status, msg} = case status do
+      :ok -> {:ok, "Deleted client"}
+      :not_found -> {:not_found, msg}
+      _ -> {:conflict, Util.parse_ecto_error(msg)}
+    end
+    conn
+    |> put_resp_content_type("text/plain")
+    |> send_resp(status, msg)
+  end
+
+  get "/client/:id/credentials" do
+    data = Admin.Client.credentials(id)
+    {status, msg, content_type} = case data do
+      nil -> {:not_found, "No client with id #{id}", "text/plain"}
+      _ -> {:ok, Jason.encode!(data), "application/json"}
+    end
+    conn
+    |> put_resp_content_type(content_type)
+    |> send_resp(status, msg)
   end
 
   match _ do

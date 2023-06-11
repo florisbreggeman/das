@@ -58,5 +58,14 @@ defmodule Util do
     end
   end
 
+  @doc """
+  Checks whether a string corresponds to the specific format used by the Ecto UUIDs
+  Returns boolean
+  """
+  def uuid?(string) do
+    regex = ~r/[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}/ui
+    Regex.match?(regex, string)
+  end
+
 
 end

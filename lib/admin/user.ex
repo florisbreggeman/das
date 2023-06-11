@@ -47,6 +47,9 @@ defmodule Admin.User do
         end
       else
         cast(user, data, [:email, :family_name, :given_names, :admin])
+        |> validate_required([:email, :family_name, :given_names, :admin])
+        |> unique_constraint(:email)
+        |> unique_constraint(:username)
         |> repo.update()
       end
     end
