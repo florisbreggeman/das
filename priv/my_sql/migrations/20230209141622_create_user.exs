@@ -10,8 +10,8 @@ defmodule Storage.MySQL.Migrations.CreateUser do
       add :admin, :boolean, default: false, null: false
       add :password, :string, null: false
     end
-    unique_index("users", [:username])
-    unique_index("users", [:email])
+    create unique_index("user", [:username])
+    create unique_index("user", [:email])
   end
 
   def down do
