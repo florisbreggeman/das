@@ -1,31 +1,58 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Hello, World!</title>
+        <title>DAS - Administer Clients</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="css/pure-min.css">
+        <link rel="stylesheet" href="css/grids-responsive-min.css">
+        <link rel="stylesheet" href="css/index.css">
+        <link rel="stylesheet" href="css/jackbox.css">
 <style id="js">
 </style>
         <meta charset="UTF-8">
     </head>
     <body>
+        <div id='layout'>
+        <a href='#menu' id='menuLink' class='menu-link'>
+            <span>Menu</span>
+        </a>
+        <div id='menu'>
+            <div class='pure-menu'>
+                <span class='pure-menu-heading'>DAS</span>
+                <ul class='pure-menu-list'>
+                    <li class='pure-menu-item'><a href='index.html' class='pure-menu-link'>My Page</a></li>
+                    <li class='pure-menu-item'><a href='users.html' class='pure-menu-link'>Users</a></li>
+                    <li class='pure-menu-item pure-menu-selected'><a href='#' class='pure-menu-link'>Applications</a></li>
+                    <li class='pure-menu-item'><a id='logout-menu' href='#menu' class='pure-menu-link'>Log out</a></li>
+                </ul>
+            </div>
+        </div>
+
+
         <div id='main'>
             <h1>Administer Client Applications</h1>
-            <p id='notifications'></p>
             <h2>Add new client application</h2>
-            <p id="form">
-            <input type="text" id="name" placeholder="name"></input><br/>
-            <input type="text" id="url" placeholder="URL"></input><br/>
+            <p id="form" class="pure-form pure-form-stacked">
+            <label for="name">Name</label>
+            <input type="text" id="name" class='pure-input pure-input-1'></input>
+            <label for="url" id='url_label'>Url</label>
+            <input type="text" id="url" class='pure-input pure-input-1'></input>
+            <label for="type" id='type_label'>Type</label>
             <select id="type">
                 <option value="oauth">OAuth</option>
                 <option value="ldap">LDAP</option>
                 <option value="forward">Forward Auth</option>
                 <option value="proxy">Proxy auth</option>
             </select>
-            <button id="create_client">Add Client Application</button>
+            <button id="create_client" class='pure-button pure-button-primary'>Add Client Application</button>
             </p>
             <h2>Current Client Applications</h2>
             <ul id='clients_list'>
 
             </ul>
+        </div>
+        </div>
+        <script type='text/javascript' src='js/jackbox.js'></script>
         <script type='text/javascript' src='js/util.js'></script>
         <script type='text/javascript' src='js/clients.js'></script>
     </body>

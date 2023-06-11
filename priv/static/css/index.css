@@ -19,6 +19,11 @@ body {
     color: #2DC920;
 }
 
+.button-delete {
+    color: #fff;
+    background: #d44;
+}
+
 /*
  * It's all stolen from PureCSS from here
  */
