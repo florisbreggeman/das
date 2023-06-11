@@ -8,6 +8,8 @@ defmodule Router do
   Forwards subdirectories to their appropriate router
   """
 
+  plug Plug.Static, at: "/", from: :das
+
   plug Plug.Session, store: :ets, key: "sid", table: :session
 
   forward "/session", to: Session.Router

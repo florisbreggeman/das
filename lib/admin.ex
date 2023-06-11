@@ -38,7 +38,7 @@ defmodule Admin do
       if not Map.get(body, "admin", true) and String.to_integer(id) == get_session(conn, :userid)  do
         conn 
         |> put_resp_content_type("text/plain")
-        |> send_resp(:forbidden, "Can't change own admin status")
+        |> send_resp(:conflict, "Can't change own admin status")
       else
         {status, msg} = Admin.User.put(id, body)
         {status, msg} = case status do

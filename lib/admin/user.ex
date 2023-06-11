@@ -33,7 +33,8 @@ defmodule Admin.User do
       data = Map.drop(data, ["id", "username", "password"]) #ignore bad updates
       #check if we're not undoing the last administrator
       if not Map.get(data, "admin", true) do
-        if get_admin_count() <= 1 do
+        admins = get_admins()
+        if Enum.count(admins) <= 1 and Enum.at(admins, 0) == id do
           {:error, "This is the last administrator"}
         else
           cast(user, data, [:email, :family_name, :given_names, :admin])
@@ -53,7 +54,7 @@ defmodule Admin.User do
       {:not_found, "No user with id #{id}"}
     else
       if user.admin do
-        if get_admin_count() <= 1 do
+        if Enum.count(get_admins()) <= 1 do
           {:error, "You can't delete the last administrator"}
         else
           repo.delete(user)
@@ -77,12 +78,11 @@ defmodule Admin.User do
     end
   end
 
-  defp get_admin_count() do
+  defp get_admins() do
     repo = Storage.get()
-    query = from u in Users.User, where: u.admin, select: count(u.id)
-    repo.one(query)
+    query = from u in Users.User, where: u.admin, select: u.id
+    repo.all(query)
   end
-
 
 end
 
