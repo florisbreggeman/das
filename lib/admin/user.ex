@@ -80,7 +80,7 @@ defmodule Admin.User do
     else
       new_password = :crypto.strong_rand_bytes(32) |> Base.encode64()
       repo = Storage.get()
-      cast(user, %{password: Bcrypt.hash_pwd_salt(new_password)}, [:password])
+      cast(user, %{password: Bcrypt.hash_pwd_salt(new_password), totp_secret: nil}, [:password, :totp_secret])
       |> repo.update()
       new_password
     end
