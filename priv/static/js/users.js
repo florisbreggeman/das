@@ -12,7 +12,7 @@ function add_field(description, value_name, value, box, element_id, disabled=fal
     field.value = value;
     field.type = "text";
     if(disabled){
-        field.disabled = true;
+        field.readOnly = true;
     }
 
     box.appendChild(description_element);
@@ -112,6 +112,7 @@ function load(){
             delete_button.appendChild(document.createTextNode('Delete'));
             delete_button.addEventListener("click", function(){delete_user(item.id);});
             delete_button.classList.add('pure-button');
+            delete_button.classList.add('button-delete');
             button_group.appendChild(delete_button);
 
             element.appendChild(button_group);
