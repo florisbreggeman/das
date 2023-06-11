@@ -33,6 +33,8 @@ defmodule Session.AdminControl do
       else
         conn
       end
+    else
+      process(conn, opts)
     end
   end
 
