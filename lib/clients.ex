@@ -31,11 +31,16 @@ defmodule Clients do
   Returns the client object if credentials are correct.
   """
   def verify(id, secret) do
-    client = get(id)
-    if client != nil and client.secret == secret do
-      client
-    else
-      nil
+    try do
+      client = get(id)
+      if client != nil and client.secret == secret do
+        client
+      else
+        nil
+      end
+    rescue
+      #probably a cast error, i.e. the username provided is not a valid ID
+      _ -> nil
     end
   end
 end
