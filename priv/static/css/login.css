@@ -1,0 +1,25 @@
+#main {
+    max-width: 40em;
+    margin: 0;
+    position: absolute;
+    top: 30%;
+    background-color: #FFF;
+    padding: 2em;
+    border-radius: 0.5em;
+}
+
+body {
+    background-color: #124;
+}
+
+#notifications {
+    color: #E9322D;
+}
+
+@media (min-width: 600px){
+    #main {
+        left: 50%;
+        transform: translate(-50%, -30%);
+    }
+}
+

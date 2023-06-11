@@ -3,15 +3,20 @@
     <head>
         <title>Log in to DAS</title>
         <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="css/pure-min.css">
+        <link rel="stylesheet" href="css/login.css">
     </head>
     <body>
         <div id='main'>
             <h2 id="title">Please log in to the Domestic Authentication Service</h2>
             <p id="notifications"></p>
-            <p id='form'>
-            <input type="text" id="username" placeholder="username"/><br/>
-            <input type="password" id="password" placeholder="password"/><br/>
-            <input type="submit" id="submit" value="Log In">
+            <p id='form' class='pure-form pure-form-stacked'>
+            <label for='username'>Username</label>
+            <input type="text" id="username" placeholder="username" class='pure-input-1' required/>
+            <label for='password'>Password</label>
+            <input type="password" id="password" placeholder="password" class='pure-input-1' required/>
+            <input type="submit" id="submit" value="Log In" class='pure-button pure-button-primary'>
             </p>
         </div>
         <script type="text/javascript" src="js/util.js"></script>

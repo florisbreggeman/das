@@ -39,7 +39,7 @@ function submit() {
     }
 
     //first define the functions for error and success of the API call
-    function enError(res, status) {
+    function onError(res, status) {
         if(status === 403){
             notify(res);
         }else{
@@ -53,22 +53,32 @@ function submit() {
             let title = document.getElementById('title')
             removeAllChildNodes(title);
             title.appendChild(document.createTextNode("Please enter your two-factor authentication code"));
+            let notifications = document.getElementById('notifications');
+            if(notifications !== null){
+                notifications.remove();
+            }
             let form_p = document.getElementById('form');
             removeAllChildNodes(form_p);
+            let code_label = document.createElement('label');
+            code_label.for = 'totp_code';
+            code_label.appendChild(document.createTextNode('Two-factor authentication code'));
+            form_p.appendChild(code_label);
             let code_field = document.createElement('input');
             code_field.id = 'totp_code';
-            code_field.placeholder = 'two-factor autentication code';
+            code_field.placeholder = 'two-factor authentication code';
             code_field.type='number';
+            code_field.classList.add('pure-input-1');
             code_field.min = 0;
             code_field.max = 999999;
             onEnter(code_field, send_totp);
             form_p.appendChild(code_field);
-            form_p.appendChild(document.createElement('br'));
 
             let submit = document.createElement('button');
             submit.id = 'submit';
             submit.appendChild(document.createTextNode('submit'));
             submit.addEventListener('click', send_totp);
+            submit.classList.add('pure-button');
+            submit.classList.add('pure-button-primary');
             form_p.append(submit);
         }else{
             const params = getParams();
