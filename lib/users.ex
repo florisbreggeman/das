@@ -5,6 +5,15 @@ defmodule Users do
   @moduledoc """
   All function required to operate on the user database
   """
+
+  @doc """
+  Gets all the users
+  """
+  def get_all() do
+    repo = Storage.get()
+    query = from u in Users.User
+    repo.all(query)
+  end
   
   @doc """
   Gets a single user that matches the id
@@ -34,7 +43,7 @@ defmodule Users do
   """
   def verify(username, password) do
     user = get_by_username(username)
-    if Bcrypt.verify_pass(password, user.password) do
+    if user != nil and Bcrypt.verify_pass(password, user.password) do
       user
     else
       nil

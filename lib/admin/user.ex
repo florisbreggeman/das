@@ -1,0 +1,76 @@
+defmodule Admin.User do
+
+  import Ecto.Changeset
+  import Ecto.Query
+
+  @moduledoc"""
+  Administrative functions that interact with users
+  """
+
+  def get() do
+    Users.get_all()
+  end
+
+  def post(data) do
+    repo = Storage.get()
+    user = %Users.User{}
+    data = Map.put(data, "password", Bcrypt.hash_pwd_salt(Map.get(data, "password", "")))
+    cast(user, data, [:username, :email, :family_name, :given_names, :admin, :password])
+    |> validate_required([:username, :email])
+    |> repo.insert()
+  end
+
+  def get(id) do
+    Users.get_by_id(id)
+  end
+
+  def put(id, data) do
+    repo = Storage.get()
+    user = Users.get_by_id(id)
+    if user == nil do
+      {:not_found, "No user with id #{id}"}
+    else
+      data = Map.drop(data, ["id", "username", "password"]) #ignore bad updates
+      #check if we're not undoing the last administrator
+      if not Map.get(data, "admin", true) do
+        if get_admin_count() <= 1 do
+          {:error, "This is the last administrator"}
+        else
+          cast(user, data, [:email, :family_name, :given_names, :admin])
+          |> repo.update()
+        end
+      else
+        cast(user, data, [:email, :family_name, :given_names, :admin])
+        |> repo.update()
+      end
+    end
+  end
+
+  def delete(id) do
+    repo = Storage.get()
+    user = Users.get_by_id(id)
+    if user == nil do
+      {:not_found, "No user with id #{id}"}
+    else
+      if user.admin do
+        if get_admin_count() <= 1 do
+          {:error, "You can't delete the last administrator"}
+        else
+          repo.delete(user)
+        end
+      else
+        repo.delete(user)
+      end
+    end
+  end
+
+  defp get_admin_count() do
+    repo = Storage.get()
+    query = from u in Users.User, where: u.admin, select: count(u.id)
+    repo.one(query)
+  end
+
+
+end
+
+

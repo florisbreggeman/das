@@ -11,6 +11,7 @@ defmodule Router do
   plug Plug.Session, store: :ets, key: "sid", table: :session
 
   forward "/session", to: Session.Router
+  forward "/admin", to: Admin
 
   plug :match
   plug :dispatch
