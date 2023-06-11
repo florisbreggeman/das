@@ -119,12 +119,25 @@ defmodule Forward.Router do
         |> put_resp_header("remote-email", user.email)
         |> send_resp(:ok, "")
       else
-        Logger.debug("Forward auth: session for userid #{userid} does not match received headers\r\n" <> Kernel.inspect(headers) <> "\r\n\r\n" <> Kernel.inspect(get_session(conn)))
-        conn
-        |> put_resp_content_type("text/plain")
-        |> send_resp(:unauthorized, "Session data does not match received headers")
+        if ip_version_mismatch(real_ip, get_session(conn, :real_ip)) do
+          #In cases where the client decides to use ip4 for contacting the client app but ip6 for contacting the login portal, we have a justified ip mismatch and we can't verify it.
+          user = get_session(conn, :user)
+          conn
+          |> put_resp_header("remote-user", user.username)
+          |> put_resp_header("remote-email", user.email)
+          |> send_resp(:ok, "")
+        else 
+          Logger.debug("Forward auth: session for userid #{userid} does not match received headers\r\n" <> Kernel.inspect(headers) <> "\r\n\r\n" <> Kernel.inspect(get_session(conn)))
+          conn
+          |> put_resp_content_type("text/plain")
+          |> send_resp(:unauthorized, "Session data does not match received headers")
+        end
       end
     end
+  end
+
+  defp ip_version_mismatch(ip1, ip2) do
+    (String.contains?(ip1, ":") and String.contains?(ip2, ".")) or (String.contains?(ip1, ".") and String.contains?(ip2, ":"))
   end
 
 end
