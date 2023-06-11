@@ -189,9 +189,11 @@ defmodule LDAP.Handler do
   end
 
   def build_where(filter) do
+    expr = build_where_part(filter)
+    expr = if expr == nil do true else expr end #in case the actual filter is not supported, show everything
     %Ecto.Query.BooleanExpr{
     op: :and,
-    expr: build_where_part(filter),
+    expr: expr,
     file: "lib/ldap/handler.ex",
     line: 191, #hardcoding the line number in the file, what could go wrong?
     params: [],
@@ -199,18 +201,17 @@ defmodule LDAP.Handler do
     }
   end
 
-  def build_where_part({:equalityMatch, {_, field, value}}) do
-    field = field_to_atom(field)
-    value = if field == :id do String.to_integer(value) else value end
-    if field == nil do
-      nil
-    else
-      {:==, [], 
-        [
-          {{:., [], [{:&, [], [0]}, field]}, [], []},
-          %Ecto.Query.Tagged{tag: nil, type: {0, field}, value: value}
-        ]}
-    end
+  def build_where_part({:equalityMatch, filter}) do
+    build_match_part(:==, filter)
+  end
+  def build_where_part({:approxMatch, filter}) do #yes, approximately equal is just ==
+    build_match_part(:==, filter)
+  end
+  def build_where_part({:greaterOrEqual, filter}) do
+    build_match_part(:>=, filter)
+  end
+  def build_where_part({:lesserOrEqual, filter}) do
+    build_match_part(:<=, filter)
   end
 
   def build_where_part({:and, filters}) do
@@ -220,16 +221,76 @@ defmodule LDAP.Handler do
     build_andor_part({:or, filters})
   end
 
+  def build_where_part({:not, filter}) do
+    #can't do this via build_andor_part, because it only has one element
+    {:not, [], [
+      build_where_part(filter)
+    ]}
+  end
+
+  def build_where_part({:present, field}) do
+    #true and false are apparently valid expressions :thonk
+    if field_to_atom(field) == nil do
+      false
+    else
+      true
+    end
+  end
+
+  def build_where_part({:substrings,{_, field, filters}}) do
+    field = field_to_atom(field)
+    if field == :nil do
+      nil
+    else
+      {:like, [], [{{:., [], [{:&, [], [0]}, :username]}, [], []}, 
+        Enum.reduce(filters, "", fn {type, value}, acc ->
+          value = sanitize_like(value)
+          case type do
+            :initial -> value <> "%"
+            :any -> if acc == "" do "%" <> value <> "%" else acc <> value <> "%" end
+            :final -> if acc == "" do "%" <> value else acc <> value end
+          end
+        end)
+      ]}
+    end
+  end
+
+  def build_where_part(_) do
+    nil
+  end
+
+  def build_match_part(type, {_, field, value}) do
+    field = field_to_atom(field)
+    value = if field == :id do String.to_integer(value) else value end
+    if field == nil do
+      nil
+    else
+      {type, [], 
+        [
+          {{:., [], [{:&, [], [0]}, field]}, [], []},
+          %Ecto.Query.Tagged{tag: nil, type: {0, field}, value: value}
+        ]}
+    end
+  end
+
+
+  #builds things that have multiple clauses, i.e. and, or
   def build_andor_part({type, filters}) do
     wheres = Enum.map(filters, fn filter ->
       build_where_part(filter)
     end)
     |> Enum.filter(fn x -> x != nil end)
+    #result depends on how many entries we have
+    #If there is only one part of the and query, we should return the raw :== match, otherwise we get a malformed query
     case Enum.count(wheres) do
       0 -> nil
       1 -> Enum.at(wheres, 0)
-      2 -> {type, [], wheres}
+      _ -> {type, [], wheres}
     end
+  end
+
+  def sanitize_like(string) do
+    Regex.replace(~r/([\%_])/, string, fn _, x -> "\\" <> x end)
   end
 
   _doc = """
