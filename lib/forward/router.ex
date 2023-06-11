@@ -72,7 +72,6 @@ defmodule Forward.Router do
         Map.get(params, "code")
       end
       if code == nil do
-        IO.inspect(headers)
         #no user id, and no code; that's an unauthenticated request, let Nginx handle the redirect
         conn
         |> send_resp(:unauthorized, "")

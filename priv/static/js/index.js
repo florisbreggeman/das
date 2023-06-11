@@ -181,6 +181,8 @@ function add_totp_buttons(totp_ldap){
         totp_ldap_span.appendChild(document.createElement('br'));
         let explanation = document.createTextNode('If checked, you must append your two-factor authentication to your password when logging in to LDAP applications');
         totp_ldap_span.appendChild(explanation);
+        totp_ldap_span.appendChild(document.createElement('br'));
+        totp_ldap_span.appendChild(document.createElement('br'));
         totp_p.appendChild(totp_ldap_span);
     }
 
