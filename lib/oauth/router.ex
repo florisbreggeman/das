@@ -115,7 +115,7 @@ defmodule OAuth.Router do
   
                 user = Users.get_by_id(user_id)
                 claims = %{
-                  sub: user_id,
+                  sub: Integer.to_string(user_id),
                   aud: client_id,
                   iss: Application.get_env(:das, :oauth_scheme, "https://") <>  conn.host,
                   given_name: user.given_names,
@@ -161,7 +161,7 @@ defmodule OAuth.Router do
         user_id = Map.get(state, :user)
         user = Users.get_by_id(user_id)
         data = %{
-          sub: user.id,
+          sub: Integer.to_string(user.id),
           preferred_username: user.username,
           given_name: user.given_names,
           family_name: user.family_name,
