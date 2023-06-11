@@ -145,17 +145,6 @@ function create_user(){
     password_field = document.getElementById("password");
     confirm_field = document.getElementById("confirm");
 
-    if(
-        username_field.value == ""
-        || email_field.value == ""
-        || given_names_field.value == ""
-        || family_name_field.value == ""
-        || password_field.value == ""
-        || confirm_field.value == ""
-    ){
-        notify("Please fill in all fields");
-        return;
-    }
 
     if(password_field.value !== confirm_field.value){
         notify("Passwords do not match");

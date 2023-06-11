@@ -17,6 +17,8 @@ defmodule Admin.User do
     data = Map.put(data, "password", Bcrypt.hash_pwd_salt(Map.get(data, "password", "")))
     cast(user, data, [:username, :email, :family_name, :given_names, :admin, :password])
     |> validate_required([:username, :email])
+    |> unique_constraint(:email)
+    |> unique_constraint(:username)
     |> repo.insert()
   end
 
@@ -39,6 +41,8 @@ defmodule Admin.User do
         else
           cast(user, data, [:email, :family_name, :given_names, :admin])
           |> validate_required([:email, :family_name, :given_names, :admin])
+          |> unique_constraint(:email)
+          |> unique_constraint(:username)
           |> repo.update()
         end
       else

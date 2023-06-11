@@ -15,10 +15,14 @@ defmodule Admin do
 
   post "/user" do
     Util.basic_query(conn, ["username", "email", "password"], fn conn, body -> 
-      Admin.User.post(body)
+      {status, msg} = Admin.User.post(body)
+      {status, msg} = case status do
+        :ok -> {:ok, "Added user"}
+        _ -> {:conflict, Util.parse_ecto_error(msg)}
+      end
       conn
       |> put_resp_content_type("text/plain")
-      |> send_resp(:ok, "Added user")
+      |> send_resp(status, msg)
     end)
   end
 
@@ -44,7 +48,7 @@ defmodule Admin do
         {status, msg} = case status do
           :ok -> {:ok, "Updated user"}
           :not_found -> {status, msg}
-          _ -> {:conflict, inspect(msg.errors)}
+          _ -> {:conflict, Util.parse_ecto_error(msg)}
         end
         conn
         |> put_resp_content_type("text/plain")

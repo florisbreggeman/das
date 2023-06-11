@@ -40,4 +40,23 @@ defmodule Util do
     end
   end
 
+  @doc """
+  Turns Ecto errors into something that is more presentable to the user
+  """
+  def parse_ecto_error(msg) do
+    try do
+      {field, msg} = Enum.at(msg.errors, 0)
+      {msg, _} = msg
+      Atom.to_string(field) <> " " <> msg
+    rescue
+      #Unexpectedly formatted error, time to try stuff:
+      _ -> try do
+          inspect(msg.errors)
+      rescue
+        _ -> inspect(msg)
+      end
+    end
+  end
+
+
 end
