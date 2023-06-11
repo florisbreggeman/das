@@ -1,5 +1,9 @@
 defmodule LDAP.Handler do
 
+  @moduledoc """
+  This module is responsible for handling all requests from incoming LDAP sockets.
+  """
+
   @dont_include [:admin, :password]
   @no_permission {:LDAPResult, :insufficientAccessRights, "", "You do not have a client bind", :asn1_NOVALUE}
   @unsupported_text "Operation not supported"
@@ -53,6 +57,21 @@ defmodule LDAP.Handler do
     end
   end
 
+  @doc """
+  Returns a response for any LDAP request
+  The supported operations are Bind, Unbind, Search, and Compare.
+  Any other request will result in an insufficientAccessRights status code, with a message explaing this feature is not supported.
+
+  Input: 
+   1. an LDAPRequest object, without the LDAPMessage wrapper
+   2. the old bind
+
+  Output: 
+  {
+   an LDAPResponse object, without the LDAPMessage wrapper,
+   the new bind (usually the same as the old bind
+  }
+  """
   def handle({:bindRequest, {:BindRequest, _version, dn, {:simple, password}}}, old_bind) do
     #first filter on whether we are trying to authenticate a client application or a user,
     #Notable difference: applications have an id, whereas users have a username
@@ -88,6 +107,7 @@ defmodule LDAP.Handler do
     {response, nil}
   end
   def handle({:searchRequest, {:SearchRequest, _domain, _subtree, _deref, size, _time, _typesonly, filters, attributes}}, bind) do
+    #build_where returns a datastructure used internally by Ecto, which we hack into a query.
     query = from Users.User
     where = build_where(filters)
     query = Map.put(query, :wheres, [where])
@@ -139,8 +159,6 @@ defmodule LDAP.Handler do
     result = if field == nil do
       :noSuchAttribute
     else
-      #now that we know that the field name exists, we can convert to atom
-      field = String.to_atom(field)
       username = case dn do
         "username=" <> username -> String.split(username, ",") |> Enum.at(0)
         _ -> nil
@@ -188,6 +206,18 @@ defmodule LDAP.Handler do
     {nil, :close}
   end
 
+  @doc """
+  This function takes in an LDAP Filter datastructure, and returns a %Ecto.Query.BooleanExpr datastructure.
+  This latter structure is used by Ecto to store the where clause of a query.
+  We can manually set this for a query. which allows us to bypass compile-time query parsing, and build the query entirely dependent on io data.
+  As a bonus point, the structure of the input and output is quite similar
+
+  Input:
+   1. An LDAP filter structure
+
+  Output: 
+  The corresponding %Ecto.Query.BooleanExpr
+  """
   def build_where(filter) do
     expr = build_where_part(filter)
     expr = if expr == nil do true else expr end #in case the actual filter is not supported, show everything
@@ -201,35 +231,36 @@ defmodule LDAP.Handler do
     }
   end
 
-  def build_where_part({:equalityMatch, filter}) do
+  defp build_where_part({:equalityMatch, filter}) do
     build_match_part(:==, filter)
   end
-  def build_where_part({:approxMatch, filter}) do #yes, approximately equal is just ==
+  defp build_where_part({:approxMatch, filter}) do #yes, approximately equal is just ==
     build_match_part(:==, filter)
   end
-  def build_where_part({:greaterOrEqual, filter}) do
+  defp build_where_part({:greaterOrEqual, filter}) do
     build_match_part(:>=, filter)
   end
-  def build_where_part({:lesserOrEqual, filter}) do
+  defp build_where_part({:lesserOrEqual, filter}) do
     build_match_part(:<=, filter)
   end
 
-  def build_where_part({:and, filters}) do
+  defp build_where_part({:and, filters}) do
     build_andor_part({:and, filters})
   end
-  def build_where_part({:or, filters}) do
+  defp build_where_part({:or, filters}) do
     build_andor_part({:or, filters})
   end
 
-  def build_where_part({:not, filter}) do
+  defp build_where_part({:not, filter}) do
     #can't do this via build_andor_part, because it only has one element
     {:not, [], [
       build_where_part(filter)
     ]}
   end
 
-  def build_where_part({:present, field}) do
-    #true and false are apparently valid expressions :thonk
+  defp build_where_part({:present, field}) do
+    #we don't actually have to query the database to resolvethis, we already have the schema...
+    #true and false are apparently valid query expressions in Ecto 
     if field_to_atom(field) == nil do
       false
     else
@@ -237,7 +268,7 @@ defmodule LDAP.Handler do
     end
   end
 
-  def build_where_part({:substrings,{_, field, filters}}) do
+  defp build_where_part({:substrings,{_, field, filters}}) do
     field = field_to_atom(field)
     if field == :nil do
       nil
@@ -255,11 +286,15 @@ defmodule LDAP.Handler do
     end
   end
 
-  def build_where_part(_) do
+  #In case the part is not recognised, we return nil
+  #This will be removed from the query automatically, meaning we'll pretend as if it wasn't there
+  #extensibleMatch is explicitly ignored.
+  defp build_where_part(_) do
     nil
   end
 
-  def build_match_part(type, {_, field, value}) do
+  #This function is really only here to define the datastructure
+  defp build_match_part(type, {_, field, value}) do
     field = field_to_atom(field)
     value = if field == :id do String.to_integer(value) else value end
     if field == nil do
@@ -275,7 +310,7 @@ defmodule LDAP.Handler do
 
 
   #builds things that have multiple clauses, i.e. and, or
-  def build_andor_part({type, filters}) do
+  defp build_andor_part({type, filters}) do
     wheres = Enum.map(filters, fn filter ->
       build_where_part(filter)
     end)
@@ -289,6 +324,10 @@ defmodule LDAP.Handler do
     end
   end
 
+  @doc """
+  Parsing a substring requires us to perform like queries with user data
+  The user data might include special characters which are parsed in like queries, so we should escape those
+  """
   def sanitize_like(string) do
     Regex.replace(~r/([\%_])/, string, fn _, x -> "\\" <> x end)
   end
