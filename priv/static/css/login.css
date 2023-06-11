@@ -16,7 +16,7 @@ body {
     color: #E9322D;
 }
 
-@media (min-width: 600px){
+@media (min-width: 40em){
     #main {
         left: 50%;
         transform: translate(-50%, -30%);

@@ -22,20 +22,17 @@ function add_text_field(description, text, box){
 
 function load_me(){
     apiCall(PATH_WHOAMI, GET, null, function(res){
-        let box = document.getElementById('whoami');
-        removeAllChildNodes(box);
-        add_text_field("Username: ", res.username, box);
-        add_text_field("Email: ", res.email, box);
-        add_text_field("Name: ", res.name, box);
-        
-        if(res.admin){
-            let element = document.createElement('span');
-            element.appendChild(document.createTextNode('You are an administrator'));
-            box.appendChild(element);
-        }
-
+        let username_field = document.getElementById('username_field');
+        username_field.value = res.username;
+        let email_field = document.getElementById('email_field');
+        email_field.value = res.email;
         let name_field = document.getElementById('name_field');
         name_field.value = res.name;
+        
+        if(res.admin){
+            let admin_span = document.getElementById('admin_span');
+            admin_span.style.display = 'inline';
+        }
 
         let totp_checkbox = document.getElementById('totp_checkbox');
         if(res.totp_enabled){
@@ -61,7 +58,10 @@ function submit_form(){
         'name': name_field.value
     }
     apiCall(PATH_WHOAMI, PUT, body, function(res){
-        load_me();
+        let notify = document.getElementById('whoami_notify');
+        notify.classList.remove('notifications-bad');
+        notify.classList.add('notifications-good');
+        notify.innerText = "Changed Data";
     }, failure);
 }
 
@@ -78,6 +78,8 @@ function change_password(){
 
     if(password_field.value !== confirm_field.value){
         removeAllChildNodes(notify);
+        notify.classList.remove('notifications-good');
+        notify.classList.add('notifications-bad');
         notify.appendChild(document.createTextNode('Passwords do not match'));
     }else{
         body = {
@@ -87,8 +89,12 @@ function change_password(){
         apiCall(PATH_CHANGE_PASSWORD, PUT, body, function(res){
             removeAllChildNodes(notify);
             notify.appendChild(document.createTextNode("Password changed"));
+            notify.classList.remove('notifications-bad');
+            notify.classList.add('notifications-good');
         }, function(res, status){
             removeAllChildNodes(notify);
+            notify.classList.remove('notifications-good');
+            notify.classList.add('notifications-bad');
             if(status == 500){
                 notify.appendChild(document.createTextNode('Unknown error'));
             }else{
@@ -128,13 +134,19 @@ function totp_notify(message){
 function view_totp_code(){
     apiCall(PATH_TOTP, GET, null, function(res){
         let el = document.getElementById('totp_qr_code');
+        let button = document.getElementById('totp_button');
         if(el === null){
             el = document.createElement('div');
             el.id = 'totp_qr_code';
             let totp_p = document.getElementById('totp');
             totp_p.appendChild(el);
+            el.innerHTML = res;
+            button.innerText='Hide Secret QR Code';
+        }else{
+            el.remove();
+            button.innerText = 'View Secret QR Code';
         }
-        el.innerHTML = res;
+
     }, failure);
 }
 
@@ -156,35 +168,48 @@ function update_totp_ldap(){
 
 function add_totp_buttons(totp_ldap){
     let totp_p = document.getElementById('totp');
-    if(document.getElementById('totp_button') === null){
-        let totp_button = document.createElement('button')
-        totp_button.appendChild(document.createTextNode('View Secret QR code'));
-        totp_button.id = 'totp_button';
-        totp_button.addEventListener('click', view_totp_code);
-        let br = document.createElement('br');
-        br.id = 'totp_button_br';
-        totp_p.appendChild(br);
-        totp_p.appendChild(totp_button);
-    }
     if(document.getElementById('totp_ldap_span') === null){
         let totp_ldap_span = document.createElement('span');
-        totp_ldap_span.appendChild(document.createElement('br'));
-        let textnode = document.createTextNode('Enable two-factor authentication for LDAP: ');
-        totp_ldap_span.appendChild(textnode)
         totp_ldap_span.id = 'totp_ldap';
+        let label = document.createElement('label')
+        label.for = 'totp_ldap_checkbox';
+        label.appendChild(document.createTextNode('Enable two-factor authentication for LDAP '))
+        totp_ldap_span.appendChild(label);
         let checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
         checkbox.checked = totp_ldap
         checkbox.id = 'totp_ldap_checkbox';
+        checkbox.classList.add('pure-checkbox');
         checkbox.addEventListener('change', update_totp_ldap);
         totp_ldap_span.appendChild(checkbox);
         totp_ldap_span.appendChild(document.createElement('br'));
-        let explanation = document.createTextNode('If checked, you must append your two-factor authentication to your password when logging in to LDAP applications');
-        totp_ldap_span.appendChild(explanation);
+        let exp_span = document.createElement('span');
+        exp_span.style.color = '#666';
+        exp_span.style.fontSize = '0.95em';
+        let explanation = document.createTextNode('If checked, you must append your two-factor authentication to your password when logging in to LDAP applications. If, for example, your password is "qwerty", and your code is "123 456", you must enter "qwerty123456" for LDAP applications.');
+        exp_span.appendChild(explanation);
+        totp_ldap_span.appendChild(exp_span);
         totp_ldap_span.appendChild(document.createElement('br'));
         totp_ldap_span.appendChild(document.createElement('br'));
         totp_p.appendChild(totp_ldap_span);
     }
+    if(document.getElementById('totp_button') === null){
+        let totp_button = document.createElement('button')
+        totp_button.appendChild(document.createTextNode('View Secret QR Code'));
+        totp_button.id = 'totp_button';
+        totp_button.classList.add('pure-button');
+        totp_button.addEventListener('click', view_totp_code);
+        let br = document.createElement('br');
+        br.id = 'totp_button_br';
+        totp_p.appendChild(totp_button);
+        totp_p.appendChild(br);
+    }
+    if(document.getElementById('totp_img') === null){
+        let totp_img_div = document.createElement('div');
+        totp_img_div.id = 'totp_img';
+        totp_p.appendChild(totp_img_div);
+    }
+
 
 }
 

@@ -1,30 +1,51 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Hello, World!</title>
+        <title>DAS - My Page</title>
         <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="css/pure-min.css">
+        <link rel="stylesheet" href="css/grids-responsive-min.css">
+        <link rel="stylesheet" href="css/index.css">
     </head>
     <body>
         <div id='main'>
-            <button id='logout'>Log Out</button>
-            <h2>My Data</h2>
-            <p id='whoami'></p>
-            <h2>Change data</h2>
-            <p id='change_data'>
-                Name: <input type='text' id='name_field'/><br/>
-                <button id='submit'>Edit Data</button>
-            </p>
-            <h2>Change password</h2>
-            <p id='password_notify'></p>
-            <p id='change_password'>
-                New password: <input type='password' id='password'/><br/>
-                Confirm: <input type='password' id='password_confirm'/><br/>
-                Old password: <input type='password' id='old_password'/><br/>
-                <button id='change_password'>Change Password</button>
-            </p>
-            <h2>Two-Factor Authentication</h2>
-            <p id='totp'></p>
-            Two-factor authentication: <input type='checkbox' id='totp_checkbox'></input>
+            <button id='logout' class='pure-button'>Log Out</button>
+            <div>
+                <h2>My Data</h2>
+                <p id='whoami_notify'></p>
+                <p id='whoami' class='pure-form pure-form-stacked'>
+                    <label for='username_field'>Username</label>
+                    <input type='text' id='username_field' class='pure-input pure-input-1' readonly>
+                    <label for='email_field'>Email</label>
+                    <input type='text' id='email_field' class='pure-input pure-input-1' readonly>
+                    <label for='name_field'>Name</label>
+                    <input type='text' id='name_field' class='pure-input pure-input-1'>
+                    <span id='admin_span' style='display:none;'>You are an administrator<br/></span>
+                    <button id='submit' class='pure-button pure-button-primary' type='button'>Edit Data</button>
+                </p>
+            </div>
+            <div>
+                <h2>Change password</h2>
+                <p id='password_notify'></p>
+                <form id='change_password' class='pure-form pure-form-stacked'>
+                    <!-- Prevent implicit submission of the form -->
+                    <button type="submit" disabled style="display: none" aria-hidden="true"></button>
+                    <fieldset class='pure-group'>
+                    <input type='password' id='password' class='pure-input-1' required placeholder='New Password'/>
+                    <input type='password' id='password_confirm' class='pure-input-1' required placeholder='Confirm Password'/>
+                    </fieldset>
+                    <label for='old_password'>Old Password</label>
+                    <input type='password' id='old_password' class='pure-input pure-input-1' required/>
+                    <button id='change_password' class='pure-button pure-button-primary'>Change Password</button>
+                </form>
+            </div>
+            <div>
+                <h2>Two-Factor Authentication</h2>
+                <label for='totp_checkbox'>Two-Factor Authentication</label>
+                <input type='checkbox' id='totp_checkbox' class='pure-checkbox'></input>
+                <p id='totp'></p>
+            </div>
         </div>
         <script type='text/javascript' src='js/util.js'></script>
         <script type='text/javascript' src='js/index.js'></script>

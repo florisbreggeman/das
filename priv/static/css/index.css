@@ -1,0 +1,20 @@
+#main {
+    max-width: 40em;
+    margin: auto;
+    background-color: #FFF;
+    padding: 2em;
+    display: flex;
+    flex-direction: column;
+}
+
+body {
+    background-color: #124;
+}
+
+.notifications-bad {
+    color: #E9322D;
+}
+
+.notifications-good {
+    color: #2DC920;
+}

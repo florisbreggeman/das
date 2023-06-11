@@ -55,7 +55,7 @@ function submit() {
             title.appendChild(document.createTextNode("Please enter your two-factor authentication code"));
             let notifications = document.getElementById('notifications');
             if(notifications !== null){
-                notifications.remove();
+                notifications.innerText = "";
             }
             let form_p = document.getElementById('form');
             removeAllChildNodes(form_p);
