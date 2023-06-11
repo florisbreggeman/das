@@ -19,11 +19,19 @@ defmodule LDAP.Handler do
         msg = :ldap_asn.decode(:LDAPMessage, data)
         case msg do
           {:ok, {:LDAPMessage, seq, request, _controls}} ->
-            {response, new_bind} = handle(request, bind)
-            IO.inspect(response)
-            if response != nil do
-              {:ok, response} = :ldap_asn.encode(:LDAPMessage, {:LDAPMesssage, seq, response, :asn1_NOVALUE})
-              transport.send(socket, response)
+            {responses, new_bind} = handle(request, bind)
+            IO.inspect(responses)
+            cond do
+              is_list(responses) ->
+                Enum.map(responses, fn response ->
+                  IO.inspect(response)
+                  {:ok, response} = :ldap_asn.encode(:LDAPMessage, {:LDAPMessage, seq, response, :asn1_NOVALUE})
+                  transport.send(socket, response)
+                end)
+              responses != nil ->
+                {:ok, response} = :ldap_asn.encode(:LDAPMessage, {:LDAPMesssage, seq, responses, :asn1_NOVALUE})
+                transport.send(socket, response)
+              true -> nil #response is nil, don't do anything
             end
             if new_bind == :close do
               transport.close(socket)
@@ -67,8 +75,14 @@ defmodule LDAP.Handler do
     else
       query = from Users.User
       query = build_query(filters, query)
-      response = {:searchResDone, {:LDAPResult, :insufficientAccessRights, "", "You must be authenticated to search", :asn1_NOVALUE}}
-      {response, bind}
+      repo = Storage.get()
+      users = repo.all(query)
+      #Below we see the most efficient way to put a predefined value at the end of a generated list (prepending is very efficient, appending is not)
+      responses = [{:searchResDone, {:LDAPResult, :success, "", "", :asn1_NOVALUE}}]
+      responses = Enum.reduce(users, responses, fn user, responses ->
+        [{:searchResEntry, {:SearchResEntry, "cn=" <> user.username <> ",dc=das,dc=nl", []}} | responses]
+      end)
+      {responses, bind}
     end
   end
 
@@ -80,13 +94,13 @@ defmodule LDAP.Handler do
 
   def build_query(filters, query, type \\ :where)
 
-  def build_query({:and, filters}, query, type) do
+  def build_query({:and, filters}, query, _type) do
     Enum.reduce(filters, query, fn filter, query ->
       build_query(filter, query, :where)
     end)
   end
 
-  def build_query({:or, filters}, query, type) do
+  def build_query({:or, filters}, query, _type) do
     Enum.reduce(filters, query, fn filter, query ->
       build_query(filter, query, :or_where)
     end)
