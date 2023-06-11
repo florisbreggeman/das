@@ -149,6 +149,12 @@ defmodule Admin do
     |> send_resp(status, msg)
   end
 
+  get "/client_ldap_area" do
+    conn
+    |> put_resp_content_type("text/plain")
+    |> send_resp(:ok, Application.get_env(:das, :ldap_client_area, "ou=clients,dc=das,dc=nl"))
+  end
+
   match _ do
     conn
     |> put_resp_content_type("text/plain")

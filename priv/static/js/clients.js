@@ -1,4 +1,5 @@
 const PATH_CLIENT = "admin/client";
+const PATH_LDAP_AREA = "admin/client_ldap_area";
 
 function add_field(description, id, value, box){
     let description_element = document.createElement('b');
@@ -51,20 +52,25 @@ function load(){
             element = document.createElement('li');
             element.id='client-'+String(item.id);
 
-            id_description = document.createElement('b');
-            id_description.appendChild(document.createTextNode('Id: '));
-            element.appendChild(id_description);
-            id_field = document.createElement('span');
-            id_field.appendChild(document.createTextNode(item.id));
-            element.appendChild(id_field);
-            element.appendChild(document.createElement('br'));
-
             type_description = document.createElement('b');
             type_description.appendChild(document.createTextNode('Type: '));
             element.appendChild(type_description);
             type_field = document.createElement('span');
             type_field.appendChild(document.createTextNode(item.type));
             element.appendChild(type_field);
+            element.appendChild(document.createElement('br'));
+
+            id_description = document.createElement('b');
+            element.appendChild(id_description);
+            id_field = document.createElement('span');
+            id_field.appendChild(document.createTextNode(item.id));
+            if(item.type == "ldap"){
+                id_field.classList.add("ldapClient");
+                id_description.appendChild(document.createTextNode('Bind DN: '));
+            }else{
+                id_description.appendChild(document.createTextNode('Id: '));
+            }
+            element.appendChild(id_field);
             element.appendChild(document.createElement('br'));
 
             name_field = add_field("Name: ", 'name', item.name, element);
@@ -96,6 +102,13 @@ function load(){
             notify("Error when loading: " + String(res));
         }
     });
+}
+
+function load_ldapArea(){
+    apiCall(PATH_LDAP_AREA, GET, null, function(res){
+        style = document.querySelector('style#js');
+        style.innerHTML = ".ldapClient:before { content: \"id=\"; } .ldapClient:after { content: \"," + res + "\"; }"
+    })
 }
 
 function create_client(){
@@ -149,6 +162,8 @@ document.addEventListener("DOMContentLoaded", function(event) {
     onEnter(name_field, create_client);
 
     document.getElementById("create_client").addEventListener("click", create_client);
+
+    load_ldapArea();
 
     load();
 });
