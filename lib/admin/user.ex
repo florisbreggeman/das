@@ -38,6 +38,7 @@ defmodule Admin.User do
           {:error, "This is the last administrator"}
         else
           cast(user, data, [:email, :family_name, :given_names, :admin])
+          |> validate_required([:email, :family_name, :given_names, :admin])
           |> repo.update()
         end
       else

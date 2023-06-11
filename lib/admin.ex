@@ -44,7 +44,7 @@ defmodule Admin do
         {status, msg} = case status do
           :ok -> {:ok, "Updated user"}
           :not_found -> {status, msg}
-          _ -> {:conflict, inspect(msg)}
+          _ -> {:conflict, inspect(msg.errors)}
         end
         conn
         |> put_resp_content_type("text/plain")
