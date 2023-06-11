@@ -43,6 +43,8 @@ defmodule Das do
       File.chmod(Application.get_env(:das, :util_socket_location, @default_socket_location), Application.get_env(:das, :util_socket_permissions, 200))
     end
 
+    Ecto.Migrator.run(Storage.get(), :up, all: true)
+
     if Application.get_env(:das, :default_add, false) do
       repo = Storage.get()
       query = from u in Users.User, select: count(u.id)
@@ -59,7 +61,6 @@ defmodule Das do
         repo.insert(user)
       end
     end
-
 
     #make sure we have the required encryption keys, generate otherwise
     OAuth.Key.ensure()
