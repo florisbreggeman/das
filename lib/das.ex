@@ -15,7 +15,8 @@ defmodule Das do
       {LDAP.Socket, [ip: Application.get_env(:das, :bind_ip, {127,0,0,1}), port: Application.get_env(:das, :ldap_port, 389)]},
       {Registry, keys: :unique, name: OAuth.CodeRegistry},
       {Registry, keys: :unique, name: OAuth.TokenRegistry},
-      {Registry, keys: :unique, name: Proxy.Registry}
+      {Registry, keys: :unique, name: Proxy.Registry},
+      {Registry, keys: :unique, name: Session.Registry}
     ]
 
     children = if Application.get_env(:das, :proxy_enable, false) do

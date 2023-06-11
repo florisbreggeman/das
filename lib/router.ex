@@ -10,7 +10,7 @@ defmodule Router do
 
   plug Plug.Static, at: "/", from: :das
 
-  plug Plug.Session, store: :ets, key: "sid", table: :session
+  plug Plug.Session, store: Session, key: "sid", registry: Session.Registry
 
   forward "/session", to: Session.Router
   forward "/admin", to: Admin
