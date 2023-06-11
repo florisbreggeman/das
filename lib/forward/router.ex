@@ -99,6 +99,7 @@ defmodule Forward.Router do
             |> put_session(:forwarded_for, forwarded_for)
             |> put_session(:real_ip, real_ip)
             |> put_resp_header("remote-user", user.username)
+            |> put_resp_header("remote-name", user.name)
             |> put_resp_header("remote-email", user.email)
             |> send_resp(:ok, "")
           else
@@ -124,6 +125,7 @@ defmodule Forward.Router do
           user = get_session(conn, :user)
           conn
           |> put_resp_header("remote-user", user.username)
+          |> put_resp_header("remote-name", user.name)
           |> put_resp_header("remote-email", user.email)
           |> send_resp(:ok, "")
         else 

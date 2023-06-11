@@ -25,8 +25,7 @@ function load_me(){
         removeAllChildNodes(box);
         add_text_field("Username: ", res.username, box);
         add_text_field("Email: ", res.email, box);
-        add_text_field("Given names: ", res.given_names, box);
-        add_text_field("Family name: ", res.family_name, box);
+        add_text_field("Name: ", res.name, box);
         
         if(res.admin){
             let element = document.createElement('span');
@@ -34,19 +33,15 @@ function load_me(){
             box.appendChild(element);
         }
 
-        given_names_field = document.getElementById('given_names_field');
-        given_names_field.value = res.given_names;
-        family_name_field = document.getElementById('family_name_field');
-        family_name_field.value = res.family_name;
+        name_field = document.getElementById('name_field');
+        name_field.value = res.name;
     }, failure);
 }
 
 function submit_form(){
-    given_names_field = document.getElementById('given_names_field');
-    family_name_field = document.getElementById('family_name_field');
+    name_field = document.getElementById('name_field');
     body = {
-        'given_names': given_names_field.value,
-        'family_name': family_name_field.value
+        'name': name_field.value
     }
     apiCall(PATH_WHOAMI, PUT, body, function(res){
         load_me();
@@ -101,12 +96,10 @@ function logout(){
 document.addEventListener("DOMContentLoaded", function(event) {
     load_me();
 
-    given_names_field = document.getElementById("given_names_field");
-    family_name_field = document.getElementById("family_name_field");
+    name_field = document.getElementById("name_field");
     submit_button = document.getElementById("submit");
 
-    onEnter(given_names_field, submit_form);
-    onEnter(family_name_field, submit_form);
+    onEnter(name_field, submit_form);
     submit_button.addEventListener("click", submit_form);
 
     password_field = document.getElementById('password');

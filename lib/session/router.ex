@@ -26,7 +26,7 @@ defmodule Session.Router do
     Util.basic_query(conn, [], fn conn, body -> 
       userid = get_session(conn, :userid)
       user = Users.get_by_id(userid)
-      changeset = cast(user, body, [:family_name, :given_names])
+      changeset = cast(user, body, [:name])
       repo = Storage.get()
       result = repo.update(changeset)
       case result do

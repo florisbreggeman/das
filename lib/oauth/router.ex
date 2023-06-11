@@ -114,8 +114,7 @@ defmodule OAuth.Router do
                   sub: Integer.to_string(user_id),
                   aud: client_id,
                   iss: Application.get_env(:das, :oauth_scheme, "https://") <>  conn.host,
-                  given_name: user.given_names,
-                  family_name: user.family_name,
+                  name: user.name,
                   email: user.email
                 }
                 nonce = Map.get(state, :nonce)
@@ -159,8 +158,7 @@ defmodule OAuth.Router do
         data = %{
           sub: Integer.to_string(user.id),
           preferred_username: user.username,
-          given_name: user.given_names,
-          family_name: user.family_name,
+          name: user.name,
         }
         scopes = Map.get(state, :scope, [])
         data = if Enum.member?(scopes, "email") do Map.put(data, :email, user.email) else nil end

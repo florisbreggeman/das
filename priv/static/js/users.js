@@ -24,14 +24,12 @@ function notify(text){
 function edit(userid){
     element = document.getElementById('user-'+String(userid));
     email_field = element.querySelector('.email');
-    given_names_field = element.querySelector('.given_names');
-    family_name_field = element.querySelector('.family_name');
+    name_field = element.querySelector('.name');
     admin_field = element.querySelector('.admin');
 
     body = {
         'email': email_field.value,
-        'given_names': given_names_field.value,
-        'family_name': family_name_field.value,
+        'name': name_field.value,
         'admin': admin_field.checked
     }
 
@@ -89,12 +87,8 @@ function load(){
             onEnter(email_field, function(){
                 edit(item.id)
             });
-            given_names_field = add_field("Given Names: ", 'given_names', item.given_names, element);
-            onEnter(given_names_field, function(){
-                edit(item.id)
-            });
-            family_name_field = add_field("Family Name: ", 'family_name', item.family_name, element);
-            onEnter(family_name_field, function(){
+            name_field = add_field("Name: ", 'name', item.name, element);
+            onEnter(name_field, function(){
                 edit(item.id)
             });
 
@@ -139,8 +133,7 @@ function load(){
 function create_user(){
     username_field = document.getElementById("username");
     email_field = document.getElementById("email");
-    given_names_field = document.getElementById("given_names");
-    family_name_field = document.getElementById("family_name");
+    name_field = document.getElementById("name");
     admin_field = document.getElementById("admin");
     password_field = document.getElementById("password");
     confirm_field = document.getElementById("confirm");
@@ -152,8 +145,7 @@ function create_user(){
         body = {
             'username': username_field.value,
             'email': email_field.value,
-            'given_names': given_names_field.value,
-            'family_name': family_name.value,
+            'name': name_field.value,
             'admin': admin_field.checked,
             'password': password_field.value
         }
@@ -186,15 +178,13 @@ function delete_user(id){
 document.addEventListener("DOMContentLoaded", function(event) {
     username_field = document.getElementById("username");
     email_field = document.getElementById("email");
-    given_names_field = document.getElementById("given_names");
-    family_name_field = document.getElementById("family_name");
+    name_field = document.getElementById("name");
     password_field = document.getElementById("password");
     confirm_field = document.getElementById("confirm");
 
     onEnter(username_field, create_user);
     onEnter(email_field, create_user);
-    onEnter(given_names_field, create_user);
-    onEnter(family_name_field, create_user);
+    onEnter(name_field, create_user);
     onEnter(password_field, create_user);
     onEnter(confirm_field, create_user);
 

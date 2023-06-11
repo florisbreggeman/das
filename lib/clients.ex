@@ -21,7 +21,7 @@ defmodule Clients do
   def get(id) do
     try do
       query = from c in Clients.Client,
-        where: c.id == ^id
+      where: c.id == ^id
       repo = Storage.get()
       repo.one(query)
     rescue

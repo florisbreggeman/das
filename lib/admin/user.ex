@@ -15,7 +15,7 @@ defmodule Admin.User do
     repo = Storage.get()
     user = %Users.User{}
     data = Map.put(data, "password", Bcrypt.hash_pwd_salt(Map.get(data, "password", "")))
-    cast(user, data, [:username, :email, :family_name, :given_names, :admin, :password])
+    cast(user, data, [:username, :email, :name, :admin, :password])
     |> validate_required([:username, :email])
     |> unique_constraint(:email)
     |> unique_constraint(:username)
@@ -39,15 +39,15 @@ defmodule Admin.User do
         if Enum.count(admins) <= 1 and Enum.at(admins, 0) == id do
           {:error, "This is the last administrator"}
         else
-          cast(user, data, [:email, :family_name, :given_names, :admin])
-          |> validate_required([:email, :family_name, :given_names, :admin])
+          cast(user, data, [:email, :name, :admin])
+          |> validate_required([:email, :name, :admin])
           |> unique_constraint(:email)
           |> unique_constraint(:username)
           |> repo.update()
         end
       else
-        cast(user, data, [:email, :family_name, :given_names, :admin])
-        |> validate_required([:email, :family_name, :given_names, :admin])
+        cast(user, data, [:email, :name, :admin])
+        |> validate_required([:email, :name, :admin])
         |> unique_constraint(:email)
         |> unique_constraint(:username)
         |> repo.update()

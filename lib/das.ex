@@ -24,8 +24,7 @@ defmodule Das do
     repo = Storage.get()
     user = %Users.User{
       username: "floris",
-      given_names: "Floris Tenzin",
-      family_name: "Breggeman",
+      name: "Floris Tenzin",
       email: "info@sfbtech.nl",
       admin: true,
       password: Bcrypt.hash_pwd_salt("admin")

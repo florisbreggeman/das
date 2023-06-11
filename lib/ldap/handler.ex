@@ -80,6 +80,8 @@ defmodule LDAP.Handler do
     {result, bind} = case dn do
       "id=" <> id -> 
         id = String.split(id, ",") |> Enum.at(0) #we only care about the first RDN
+        IO.inspect(id)
+        IO.inspect(password)
         client = Clients.verify(id, password)
         {client, if client == nil do old_bind else client end}
       "username=" <> username ->
