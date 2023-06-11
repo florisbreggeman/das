@@ -8,16 +8,23 @@ defmodule Router do
   Forwards subdirectories to their appropriate router
   """
 
-  plug :match
-  plug :dispatch
-
   plug Plug.Session, store: :ets, key: "sid", table: :session
 
-  #forward "/admin", to: Router.Admin
+  forward "/session", to: Session.Router
+
+  plug :match
+  plug :dispatch
   
   get "/" do
     conn
     |> send_resp(:ok, "Hello, World!")
   end
+
+  match _ do
+    conn
+    |> put_resp_content_type("text/plain")
+    |> send_resp(404, "Not Found")
+  end
+
 end
 

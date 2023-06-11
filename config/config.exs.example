@@ -4,6 +4,13 @@ import Config
 config :das,
 #which type of database to use; optoins are :sqlite, :mysql, or :postgres
 db_type: :sqlite 
+#Which ip and port to listen on. Mind the syntax for the ip bind.
+#Defaults to 127.0.0.0:8080.
+bind_ip: {127, 0, 0, 1},
+bind_port: 8080
+#Alternatively, uncomment these lines (and comment the above) to listen on a socket
+#bind_ip: {:local, "/var/run/das.sock"}
+#bind_port: 0
 
 #Settings for Postgres or MySQL; uncomment the one which applies
 #config :das, Storage.Postgres
