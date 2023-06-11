@@ -6,8 +6,20 @@
     </head>
     <body>
         <div id='main'>
-            <h2>Administer users</h2>
+            <h1>Administer users</h1>
             <p id='notifications'></p>
+            <h2>Create new users</h2>
+            <p>
+            <input type="text" id="username" placeholder="username"></input><br/>
+            <input type="text" id="email" placeholder="email"></input><br/>
+            <input type="text" id="given_names" placeholder="Given names"></input><br/>
+            <input type="text" id="family_name" placeholder="Family name"></input><br/>
+            <b>Admin? </b><input type="checkbox" id="admin"></input><br/>
+            <input type="password" id="password" placeholder="Password"></input><br/>
+            <input type="password" id="confirm" placeholder="Confirm password"></input><br/>
+            <button id="create_user">Create User</button>
+            </p>
+            <h2>Current Users</h2>
             <ul id='users_list'>
 
             </ul>

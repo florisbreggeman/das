@@ -23,11 +23,13 @@ function notify(text){
 
 function edit(userid){
     element = document.getElementById('user-'+String(userid));
+    email_field = element.querySelector('.email');
     given_names_field = element.querySelector('.given_names');
     family_name_field = element.querySelector('.family_name');
     admin_field = element.querySelector('.admin');
 
     body = {
+        'email': email_field.value,
         'given_names': given_names_field.value,
         'family_name': family_name_field.value,
         'admin': admin_field.checked
@@ -83,19 +85,15 @@ function load(){
             element.appendChild(username_field);
             element.appendChild(document.createElement('br'));
 
-            email_description = document.createElement('b');
-            email_description.appendChild(document.createTextNode('Email: '));
-            element.appendChild(email_description);
-            email_field = document.createElement('span');
-            email_field.appendChild(document.createTextNode(item.email));
-            element.appendChild(email_field);
-            element.appendChild(document.createElement('br'));
-
-            given_names_field = add_field("Given Names:", 'given_names', item.given_names, element);
+            email_field = add_field("Email: ", 'email', item.email, element);
+            onEnter(email_field, function(){
+                edit(item.id)
+            });
+            given_names_field = add_field("Given Names: ", 'given_names', item.given_names, element);
             onEnter(given_names_field, function(){
                 edit(item.id)
             });
-            family_name_field = add_field("Family Name:", 'family_name', item.family_name, element);
+            family_name_field = add_field("Family Name: ", 'family_name', item.family_name, element);
             onEnter(family_name_field, function(){
                 edit(item.id)
             });
@@ -122,6 +120,11 @@ function load(){
             password_button.addEventListener("click", function(){change_password(item.id);});
             element.appendChild(password_button);
 
+            delete_button = document.createElement('button');
+            delete_button.appendChild(document.createTextNode('Delete'));
+            delete_button.addEventListener("click", function(){delete_user(item.id);});
+            element.appendChild(delete_button);
+
             list.appendChild(element);
         });
     }, function(res, status){
@@ -133,7 +136,81 @@ function load(){
     });
 }
 
+function create_user(){
+    username_field = document.getElementById("username");
+    email_field = document.getElementById("email");
+    given_names_field = document.getElementById("given_names");
+    family_name_field = document.getElementById("family_name");
+    admin_field = document.getElementById("admin");
+    password_field = document.getElementById("password");
+    confirm_field = document.getElementById("confirm");
+
+    if(
+        username_field.value == ""
+        || email_field.value == ""
+        || given_names_field.value == ""
+        || family_name_field.value == ""
+        || password_field.value == ""
+        || confirm_field.value == ""
+    ){
+        notify("Please fill in all fields");
+        return;
+    }
+
+    if(password_field.value !== confirm_field.value){
+        notify("Passwords do not match");
+    }else{
+        body = {
+            'username': username_field.value,
+            'email': email_field.value,
+            'given_names': given_names_field.value,
+            'family_name': family_name.value,
+            'admin': admin_field.checked,
+            'password': password_field.value
+        }
+        apiCall(PATH_USER, POST, body, function(res){
+            notify("Created user");
+            load();
+        }, function(res, status){
+            if(status == 403){
+                window.location.replace("login.html");
+            }else{
+                notify("Error creating user: " + String(res));
+            }
+        });
+    }
+}
+
+function delete_user(id){
+    apiCall(PATH_USER+"/"+String(id), DELETE, null, function(res){
+        notify("Deleted user");
+        load();
+    }, function(res, status){
+        if(status===403){
+            window.location.replace("login.html");
+        }else{
+            notify("Error deleting user: " + String(res))
+        }
+    });
+}
+
 document.addEventListener("DOMContentLoaded", function(event) {
+    username_field = document.getElementById("username");
+    email_field = document.getElementById("email");
+    given_names_field = document.getElementById("given_names");
+    family_name_field = document.getElementById("family_name");
+    password_field = document.getElementById("password");
+    confirm_field = document.getElementById("confirm");
+
+    onEnter(username_field, create_user);
+    onEnter(email_field, create_user);
+    onEnter(given_names_field, create_user);
+    onEnter(family_name_field, create_user);
+    onEnter(password_field, create_user);
+    onEnter(confirm_field, create_user);
+
+    document.getElementById("create_user").addEventListener("click", create_user);
+
     load();
 });
 
