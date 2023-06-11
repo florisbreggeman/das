@@ -32,7 +32,8 @@ defmodule Das.MixProject do
       {:ecto_sqlite3, "~>0.9.0"},
       {:bcrypt_elixir, "~> 3.0"},
       {:plug_cowboy, "~> 2.0"},
-      {:jason, "~> 1.2"}
+      {:jason, "~> 1.2"},
+      {:ldap_asn, path: "ldap_asn/", manager: :rebar3}
     ]
   end
 end

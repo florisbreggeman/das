@@ -7,7 +7,8 @@ defmodule Das do
   def start(_type, _args) do
     children = [
       Storage,
-      {Plug.Cowboy, scheme: :http, plug: Router, options: [ip: Application.get_env(:das, :bind_ip, {127,0,0,1}), port: Application.get_env(:das, :bind_port, 8080)]}
+      {Plug.Cowboy, scheme: :http, plug: Router, options: [ip: Application.get_env(:das, :bind_ip, {127,0,0,1}), port: Application.get_env(:das, :bind_port, 8080)]},
+      {LDAP.Socket, [port: 3389]}
     ]
 
     opts = [strategy: :one_for_one, name: Das.Supervisor]
