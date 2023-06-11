@@ -66,10 +66,7 @@ function submit_form(){
         'name': name_field.value
     }
     apiCall(PATH_WHOAMI, PUT, body, function(res){
-        let notify = document.getElementById('whoami_notify');
-        notify.classList.remove('notifications-bad');
-        notify.classList.add('notifications-good');
-        notify.innerText = "Changed Data";
+        Jackbox.success('Changed Data');
     }, failure);
 }
 
@@ -82,31 +79,20 @@ function change_password(){
         return;
     }
 
-    notify = document.getElementById('password_notify');
-
     if(password_field.value !== confirm_field.value){
-        removeAllChildNodes(notify);
-        notify.classList.remove('notifications-good');
-        notify.classList.add('notifications-bad');
-        notify.appendChild(document.createTextNode('Passwords do not match'));
+        Jackbox.warning('Passwords do not match');
     }else{
         body = {
             'current_password': old_field.value,
             'new_password': password_field.value
         }
         apiCall(PATH_CHANGE_PASSWORD, PUT, body, function(res){
-            removeAllChildNodes(notify);
-            notify.appendChild(document.createTextNode("Password changed"));
-            notify.classList.remove('notifications-bad');
-            notify.classList.add('notifications-good');
+            Jackbox.success("Password changed");
         }, function(res, status){
-            removeAllChildNodes(notify);
-            notify.classList.remove('notifications-good');
-            notify.classList.add('notifications-bad');
             if(status == 500){
-                notify.appendChild(document.createTextNode('Unknown error'));
+                Jackbox.error('Unknown error');
             }else{
-                notify.appendChild(document.createTextNode(String(res)));
+                Jackbox.error(String(res));
             }
         });
     }
@@ -122,21 +108,6 @@ function logout(){
             alert("Unknown error logging out: " + String(res))
         }
     });
-}
-
-function totp_notify(message){
-    let text_node = document.createTextNode(message);
-    let totp_notify = document.getElementById('totp_notify');
-    if(totp_notify === null){
-        let totp_p = document.getElementById("totp");
-        totp_notify = document.createElement('span');
-        totp_notify.id = 'totp_notify';
-        totp_notify.appendChild(text_node);
-        totp_p.appendChild(totp_notify);
-    }else{
-        removeAllChildNodes(totp_notify);
-        totp_notify.appendChild(text_node);
-    }
 }
 
 function view_totp_code(){
@@ -165,12 +136,12 @@ function update_totp_ldap(){
     }
     apiCall(PATH_WHOAMI, PUT, body, function(res){
         if(checkbox.checked){
-            totp_notify("Enabled two-factor for LDAP");
+            Jackbox.information("Enabled two-factor for LDAP");
         }else{
-            totp_notify("Disabled two-factor for LDAP");
+            Jackbox.information('Disabled two-factor for LDAP');
         }
     }, function(res, status){
-        totp_notify("Uknown error (code " + String(status) + "): " + res);
+        Jackbox.error("Uknown error (code " + String(status) + "): " + res);
     });
 }
 
@@ -226,14 +197,14 @@ function update_totp() {
     if(totp_checkbox.checked){
         //enable TOTP
         apiCall(PATH_TOTP, POST, null, function(res){
-            totp_notify("Two-factor authentication has been enabled");
+            Jackbox.success("Two-factor authentication has been enabled");
             view_totp_code();
             add_totp_buttons(false);
         }, failure)
     }else{
         //disable TOTP
         apiCall(PATH_TOTP, DELETE, null, function(res){
-            totp_notify("Two-factor authentication has been disabled");
+            Jackbox.success("Two-factor authentication has been disabled");
             let totp_button = document.getElementById('totp_button');
             if(totp_button !== null){
                 totp_button.remove();
@@ -249,6 +220,7 @@ function update_totp() {
 }
 
 document.addEventListener("DOMContentLoaded", function(event) {
+    Jackbox.init();
     load_me();
 
     let name_field = document.getElementById("name_field");
