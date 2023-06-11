@@ -6,7 +6,8 @@ defmodule Das do
 
   def start(_type, _args) do
     children = [
-      Storage
+      Storage,
+      {Plug.Cowboy, scheme: :http, plug: Router, options: [ip: {127, 0, 0, 1}, port: 8080]}
     ]
 
     opts = [strategy: :one_for_one, name: Das.Supervisor]
@@ -23,7 +24,7 @@ defmodule Das do
       admin: true,
       password: Bcrypt.hash_pwd_salt("admin")
     }
-    repo.insert(user)
+    #repo.insert(user)
 
     {:ok, supervisor}
   end

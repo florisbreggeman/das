@@ -31,7 +31,8 @@ defmodule Das.MixProject do
       {:postgrex, "~>0.16.0"},
       {:ecto_sqlite3, "~>0.9.0"},
       {:bcrypt_elixir, "~> 3.0"},
-      {:plug_cowboy, "~> 2.0"}
+      {:plug_cowboy, "~> 2.0"},
+      {:jason, "~> 1.2"}
     ]
   end
 end
