@@ -32,7 +32,15 @@ function load_me(){
         if(res.admin){
             let admin_span = document.getElementById('admin_span');
             admin_span.style.display = 'inline';
+            let logout_button = document.getElementById('logout');
+            logout_button.style.display = 'none';
+        }else{
+            let menu = document.getElementById('menu');
+            menu.style.display = 'none';
+            let menu_link = document.getElementById('menuLink');
+            menu_link.style.display = 'none';
         }
+
 
         let totp_checkbox = document.getElementById('totp_checkbox');
         if(res.totp_enabled){
@@ -261,8 +269,63 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
     let logout_button = document.getElementById('logout');
     logout_button.addEventListener("click", logout);
+    let logout_link = document.getElementById('logout-menu');
+    logout_link.addEventListener("click", logout);
 
     let totp_checkbox = document.getElementById('totp_checkbox');
     totp_checkbox.addEventListener("change", update_totp);
 });
-        
+
+//It's all Purecss from here on out
+(function (window, document) {
+    // we fetch the elements each time because docusaurus removes the previous
+    // element references on page navigation
+    function getElements() {
+        return {
+            layout: document.getElementById('layout'),
+            menu: document.getElementById('menu'),
+            menuLink: document.getElementById('menuLink')
+        };
+    }
+    function toggleClass(element, className) {
+        var classes = element.className.split(/\s+/);
+        var length = classes.length;
+        var i = 0;
+
+        for (; i < length; i++) {
+            if (classes[i] === className) {
+                classes.splice(i, 1);
+                break;
+            }
+        }
+        // The className is not found
+        if (length === classes.length) {
+            classes.push(className);
+        }
+
+        element.className = classes.join(' ');
+    }
+
+    function toggleAll() {
+        var active = 'active';
+        var elements = getElements();
+
+        toggleClass(elements.layout, active);
+        toggleClass(elements.menu, active);
+        toggleClass(elements.menuLink, active);
+    }
+
+    function handleEvent(e) {
+        var elements = getElements();
+
+        if (e.target.id === elements.menuLink.id) {
+            toggleAll();
+            e.preventDefault();
+        } else if (elements.menu.className.indexOf('active') !== -1) {
+            toggleAll();
+        }
+    }
+
+    document.addEventListener('click', handleEvent);
+
+}(this, this.document));
