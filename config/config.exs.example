@@ -4,13 +4,27 @@ import Config
 config :das,
 #which type of database to use; optoins are :sqlite, :mysql, or :postgres
 db_type: :sqlite 
-#Which ip and port to listen on. Mind the syntax for the ip bind.
+#Which ip and port to listen on for web requests. Mind the syntax for the ip bind.
 #Defaults to 127.0.0.0:8080.
 bind_ip: {127, 0, 0, 1},
 bind_port: 8080
 #Alternatively, uncomment these lines (and comment the above) to listen on a socket
 #bind_ip: {:local, "/var/run/das.sock"}
 #bind_port: 0
+
+#LDAP settings
+#The IP and port for the LDAP server to listen on. Mind the syntax for the IP
+#Default to 127.0.0.1:389
+ldap_ip: {127, 0, 0, 1},
+ldap_port: 389,
+#Alternatively, uncomment these lines (and comment the above) to listen for LDAP on a socket
+#ldap_ip: {:local, "/var/run/das_ldap.sock"}
+#ldap_port: 0
+#The two lines under here define where in the presented LDAP directory structure the users and clients will appear to be
+#Altering these settings will have no effect on the functionality of the software, and its advised to leave them alone if you don't know what they represent.
+#The value of these is mostly irrelevant, as DAS will interpret any values as referring to the users table; however, client applications may expect them to be valid LDAP DN components.
+ldap_clients_area: "ou=clients,dc=das,dc=nl",
+ldap_users_area: "ou=users,dc=das,dc=nl"
 
 #Settings for Postgres or MySQL; uncomment the one which applies
 #config :das, Storage.Postgres

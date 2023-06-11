@@ -101,7 +101,7 @@ defmodule LDAP.Handler do
     #Below we see the most efficient way to put a predefined value at the end of a generated list (prepending is very efficient, appending is not)
     responses = [{:searchResDone, {:LDAPResult, :success, "", "", :asn1_NOVALUE}}]
     responses = Enum.reduce(users, responses, fn user, responses ->
-      [{:searchResEntry, {:SearchResEntry, "username=" <> user.username <> ",dc=das,dc=nl", 
+      [{:searchResEntry, {:SearchResEntry, "username=" <> user.username <> "," <> Application.get_env(:das, :ldap_users_area, "ou=users,dc=das,dc=nl"), 
         Enum.map(Users.User.__schema__(:fields), fn field ->
           if Enum.member?(@dont_include, field) do
             nil
