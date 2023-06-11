@@ -4,7 +4,7 @@ defmodule LDAP.Handler do
   This module is responsible for handling all requests from incoming LDAP sockets.
   """
 
-  @dont_include [:admin, :password]
+  @dont_include [:admin, :password, :totp_secret, :totp_last_used]
   @no_permission {:LDAPResult, :insufficientAccessRights, "", "You do not have a client bind", :asn1_NOVALUE}
   @unsupported_text "Operation not supported"
   @unsupported {:LDAPResult, :insufficientAccessRights, "", @unsupported_text, :asn1_NOVALUE}
@@ -80,13 +80,11 @@ defmodule LDAP.Handler do
     {result, bind} = case dn do
       "id=" <> id -> 
         id = String.split(id, ",") |> Enum.at(0) #we only care about the first RDN
-        IO.inspect(id)
-        IO.inspect(password)
         client = Clients.verify(id, password)
         {client, if client == nil do old_bind else client end}
       "username=" <> username ->
         username = String.split(username, ",") |> Enum.at(0)
-        user = Users.verify(username, password)
+        user = Users.verify(username, password, ldap: true)
         {user, nil} #users have no rights, so we might as well treat them as anonymous binds.
       _ -> 
         {nil, old_bind}
@@ -138,7 +136,12 @@ defmodule LDAP.Handler do
       [{:searchResEntry, {:SearchResEntry, "username=" <> user.username <> "," <> Application.get_env(:das, :ldap_users_area, "ou=users,dc=das,dc=nl"), 
         Enum.map(attributes, fn field ->
           value = Map.get(user, field)
-          value = if field == :id do Integer.to_string(value) else value end
+          #The response encoder only accepts strings as values, so we must convert things that are not strings
+          value = case field do
+            :id -> Integer.to_string(value)
+            :totp_ldap -> if value do "true" else "false" end
+            _ -> value
+          end
           if value == nil do
             nil
           else

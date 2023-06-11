@@ -41,12 +41,24 @@ defmodule Users do
   Returns nil if incorrect (including if the user does not exist, etc.)
   Returns the user object if credentials are correct.
   """
-  def verify(username, password) do
+  def verify(username, password, opts \\ []) do
     user = get_by_username(username)
-    if user != nil and Bcrypt.verify_pass(password, user.password) do
-      user
-    else
-      nil
+    ldap = if opts[:ldap] == nil do false else opts[:ldap] end
+    cond do
+      user == nil -> nil
+      ldap and user.totp_ldap and user.totp_secret != nil -> 
+        totp_code = String.slice(password, -6..-1)
+        password = String.slice(password, 0..-7//1)
+        IO.inspect(password)
+        IO.inspect(totp_code)
+        pass_check = Bcrypt.verify_pass(password, user.password)
+        IO.inspect(pass_check)
+        totp_check = NimbleTOTP.valid?(user.totp_secret, totp_code)
+        IO.inspect(totp_check)
+        if pass_check and totp_check do user else nil end
+
+      Bcrypt.verify_pass(password, user.password) -> user
+      true -> nil
     end
   end
 end

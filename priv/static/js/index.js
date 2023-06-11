@@ -37,12 +37,21 @@ function load_me(){
         let name_field = document.getElementById('name_field');
         name_field.value = res.name;
 
+        let totp_checkbox = document.getElementById('totp_checkbox');
         if(res.totp_enabled){
-            let totp_checkbox = document.getElementById('totp_checkbox');
-            totp_checkbox.checked = true
-            add_totp_button();
+            totp_checkbox.checked = true;
+            add_totp_buttons(res.totp_ldap);
+        }else{
+            totp_checkbox.checked = false;
+            let totp_button = document.getElementById('totp_button');
+            if(totp_button !== null){
+                totp_button.remove();
+            }
+            let totp_ldap = document.getElementById('totp_ldap');
+            if(totp_ldap !== null){
+                totp_ldap.remove();
+            }
         }
-
     }, failure);
 }
 
@@ -129,18 +138,52 @@ function view_totp_code(){
     }, failure);
 }
 
-function add_totp_button(){
+function update_totp_ldap(){
+    let checkbox = document.getElementById('totp_ldap_checkbox');
+    let body = {
+        'totp_ldap': checkbox.checked
+    }
+    apiCall(PATH_WHOAMI, PUT, body, function(res){
+        if(checkbox.checked){
+            totp_notify("Enabled two-factor for LDAP");
+        }else{
+            totp_notify("Disabled two-factor for LDAP");
+        }
+    }, function(res, status){
+        totp_notify("Uknown error (code " + String(status) + "): " + res);
+    });
+}
+
+function add_totp_buttons(totp_ldap){
+    let totp_p = document.getElementById('totp');
     if(document.getElementById('totp_button') === null){
         let totp_button = document.createElement('button')
         totp_button.appendChild(document.createTextNode('View Secret QR code'));
         totp_button.id = 'totp_button';
         totp_button.addEventListener('click', view_totp_code);
-        let totp_p = document.getElementById('totp');
         let br = document.createElement('br');
         br.id = 'totp_button_br';
         totp_p.appendChild(br);
         totp_p.appendChild(totp_button);
     }
+    if(document.getElementById('totp_ldap_span') === null){
+        let totp_ldap_span = document.createElement('span');
+        totp_ldap_span.appendChild(document.createElement('br'));
+        let textnode = document.createTextNode('Enable two-factor authentication for LDAP: ');
+        totp_ldap_span.appendChild(textnode)
+        totp_ldap_span.id = 'totp_ldap';
+        let checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = totp_ldap
+        checkbox.id = 'totp_ldap_checkbox';
+        checkbox.addEventListener('change', update_totp_ldap);
+        totp_ldap_span.appendChild(checkbox);
+        totp_ldap_span.appendChild(document.createElement('br'));
+        let explanation = document.createTextNode('If checked, you must append your two-factor authentication to your password when logging in to LDAP applications');
+        totp_ldap_span.appendChild(explanation);
+        totp_p.appendChild(totp_ldap_span);
+    }
+
 }
 
 function update_totp() {
@@ -150,7 +193,7 @@ function update_totp() {
         apiCall(PATH_TOTP, POST, null, function(res){
             totp_notify("Two-factor authentication has been enabled");
             view_totp_code();
-            add_totp_button();
+            add_totp_buttons(false);
         }, failure)
     }else{
         //disable TOTP
@@ -160,6 +203,7 @@ function update_totp() {
             if(totp_button !== null){
                 totp_button.remove();
                 document.getElementById('totp_button_br').remove();
+                document.getElementById('totp_ldap').remove();
             }
             let qr_code = document.getElementById('totp_qr_code');
             if(qr_code !== null){
