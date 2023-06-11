@@ -5,7 +5,7 @@ defmodule Das.MixProject do
     [
       app: :das,
       version: "0.1.0",
-      elixir: "~> 1.14",
+      elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       config_providers: [
@@ -33,7 +33,8 @@ defmodule Das.MixProject do
       {:bcrypt_elixir, "~> 3.0"},
       {:plug_cowboy, "~> 2.0"},
       {:jason, "~> 1.2"},
-      {:ldap_asn, path: "ldap_asn/", manager: :rebar3}
+      {:ldap_asn, path: "ldap_asn/", manager: :rebar3},
+      {:yajwt, "~> 1.0"}
     ]
   end
 end
