@@ -29,7 +29,8 @@ defmodule Das.MixProject do
       {:ecto_sql, "~>3.0"},
       {:myxql, "~>0.6.3"},
       {:postgrex, "~>0.16.0"},
-      {:ecto_sqlite3, "~>0.9.0"}
+      {:ecto_sqlite3, "~>0.9.0"},
+      {:bcrypt_elixir, "~> 3.0"}
     ]
   end
 end
