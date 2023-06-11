@@ -7,6 +7,8 @@ defmodule OAuth.Router do
   The router for OAuth 
   """
 
+  plug NoCache
+
   plug :match
   plug :dispatch
 
@@ -21,6 +23,7 @@ defmodule OAuth.Router do
     redirect_object = Clients.get_callbackuri_object(client_id, redirect)
     state = Map.get(params, "state")
     scopes = Map.get(params, "scope", "openid") |> String.downcase() |> String.split()
+    nonce = Map.get(params, "nonce")
     cond do
       userid == nil ->
         our_uri = "oauth/authorize?" <> conn.query_string
@@ -43,7 +46,8 @@ defmodule OAuth.Router do
       true ->
         case Enum.at(response_types, 0) do
           "code" ->
-            code = OAuth.Code.generate(%{client: client_id, redirect: redirect, user: userid, scope: scopes})
+            code_data = %{client: client_id, redirect: redirect, user: userid, scope: scopes, nonce: nonce}
+            code = OAuth.Code.generate(code_data)
             response_params = %{
               code: code
             }

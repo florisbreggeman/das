@@ -32,6 +32,9 @@ defmodule Das do
     }
     #repo.insert(user)
 
+    #make sure we have the required encryption keys, generate otherwise
+    OAuth.Key.ensure()
+
     {:ok, supervisor}
   end
 
