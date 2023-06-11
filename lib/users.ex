@@ -49,9 +49,18 @@ defmodule Users do
       ldap and user.totp_ldap and user.totp_secret != nil -> 
         totp_code = String.slice(password, -6..-1)
         password = String.slice(password, 0..-7//1)
+        since = if user.totp_last_used == nil do 0 else user.totp_last_used end
+
         pass_check = Bcrypt.verify_pass(password, user.password)
-        totp_check = NimbleTOTP.valid?(user.totp_secret, totp_code)
-        if pass_check and totp_check do user else nil end
+        totp_check = NimbleTOTP.valid?(user.totp_secret, totp_code, since: since)
+        return = if pass_check and totp_check do user else nil end
+        if return != nil do
+          #we need to update the time that the code was last used to prevent it from being used again
+          changeset = Ecto.Changeset.cast(user, %{totp_last_used: System.os_time(:second)}, [:totp_last_used])
+          repo = Storage.get()
+          repo.update(changeset)
+        end
+        return
 
       Bcrypt.verify_pass(password, user.password) -> user
       true -> nil
