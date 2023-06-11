@@ -1,6 +1,8 @@
 defmodule LDAP.Handler do
 
   @dont_include [:admin, :password]
+  @no_permission {:LDAPResult, :insufficientAccessRights, "", "You do not have a client bind", :asn1_NOVALUE}
+  @unsupported {:LDAPResult, :insufficientAccessRights, "", "This feature is not supported", :asn1_NOVALUE}
 
   import Ecto.Query
   require Logger
@@ -50,73 +52,115 @@ defmodule LDAP.Handler do
     end
   end
 
-  defp handle({:bindRequest, {:BindRequest, _version, dn, {:simple, password}}}, bind) do
+  def handle({:bindRequest, {:BindRequest, _version, dn, {:simple, password}}}, old_bind) do
     #first filter on whether we are trying to authenticate a client application or a user,
     #Notable difference: applications have an id, whereas users have a username
-    client = case dn do
+    
+    #Return two parameters: the client to respond with, and the client we'll actually consider bound
+    {result, bind} = case dn do
       "id=" <> id -> 
         id = String.split(id, ",") |> Enum.at(0) #we only care about the first RDN
-        Clients.verify(id, password)
+        client = Clients.verify(id, password)
+        {client, if client == nil do old_bind else client end}
       "username=" <> username ->
         username = String.split(username, ",") |> Enum.at(0)
-        Users.verify(username, password)
+        user = Users.verify(username, password)
+        {user, nil} #users have no rights, so we might as well treat them as anonymous binds.
       _ -> 
-        nil
+        {nil, old_bind}
     end
-    if client == nil do
+    if result == nil do
       response = {:bindResponse, {:BindResponse, :invalidCredentials, dn, "", :asn1_NOVALUE, :asn1_NOVALUE}}
       {response, bind}
     else
       response = {:bindResponse, {:BindResponse, :success, dn, "", :asn1_NOVALUE, :asn1_NOVALUE}}
-      {response, client}
+      {response, bind}
     end
   end
-  defp handle({:bindRequest, {:BindRequest, _version, _name, {_sasl, _password}}}, bind) do
+  def handle({:bindRequest, {:BindRequest, _version, _name, {_sasl, _password}}}, bind) do
     response = {:bindResponse, {:BindResponse, :authMethodNotSupported, "", "Only simple authentication is supported", :asn1_NOVALUE, :asn1_NOVALUE}}
     {response, bind}
   end
 
-  defp handle({:searchRequest, {:SearchRequest, _domain, _subtree, _deref, size, _time, _typesonly, filters, _attributes}}, bind) do
+  def handle({:searchRequest, _}, nil) do
+    response = {:searchResDone, @no_permission}
+    {response, nil}
+  end
+  def handle({:searchRequest, {:SearchRequest, _domain, _subtree, _deref, size, _time, _typesonly, filters, _attributes}}, bind) do
     #TODO: actually use the attribute selection
-    if bind == nil do
-      response = {:searchResDone, {:LDAPResult, :insufficientAccessRights, "", "You must be authenticated to search", :asn1_NOVALUE}}
-      {response, bind}
+    query = from Users.User
+    query = build_query(filters, query)
+    query = if size > 0 do
+      from query, limit: ^size
     else
-      query = from Users.User
-      query = build_query(filters, query)
-      query = if size > 0 do
-        from query, limit: ^size
-      else
-        query
-      end
-      repo = Storage.get()
-      users = repo.all(query)
-      #Below we see the most efficient way to put a predefined value at the end of a generated list (prepending is very efficient, appending is not)
-      responses = [{:searchResDone, {:LDAPResult, :success, "", "", :asn1_NOVALUE}}]
-      responses = Enum.reduce(users, responses, fn user, responses ->
-        [{:searchResEntry, {:SearchResEntry, "username=" <> user.username <> ",dc=das,dc=nl", 
-          Enum.map(Users.User.__schema__(:fields), fn field ->
-            if Enum.member?(@dont_include, field) do
+      query
+    end
+    repo = Storage.get()
+    users = repo.all(query)
+    #Below we see the most efficient way to put a predefined value at the end of a generated list (prepending is very efficient, appending is not)
+    responses = [{:searchResDone, {:LDAPResult, :success, "", "", :asn1_NOVALUE}}]
+    responses = Enum.reduce(users, responses, fn user, responses ->
+      [{:searchResEntry, {:SearchResEntry, "username=" <> user.username <> ",dc=das,dc=nl", 
+        Enum.map(Users.User.__schema__(:fields), fn field ->
+          if Enum.member?(@dont_include, field) do
+            nil
+          else
+            value = Map.get(user, field)
+            value = if field == :id do Integer.to_string(value) else value end
+            if value == nil do
               nil
             else
-              value = Map.get(user, field)
-              value = if field == :id do Integer.to_string(value) else value end
-              if value == nil do
-                nil
-              else
-                {:partialAttribute, Atom.to_string(field), [value]}
-              end
+              {:partialAttribute, Atom.to_string(field), [value]}
             end
-          end)
-          |> Enum.filter(fn x -> x != nil end) 
-        }} | responses]
-      end)
-      {responses, bind}
+          end
+        end)
+        |> Enum.filter(fn x -> x != nil end) 
+      }} | responses]
+    end)
+    {responses, bind}
+  end
+
+  def handle({:compareRequest, _}, nil) do
+    response = {:compareResponse, @no_permission}
+    {response, nil}
+  end
+  def handle({:compareRequest, {:CompareRequest, dn, {:AttributeValueAssertion, field, value}}}, bind) do
+    field = String.to_atom(field)
+    result = if Enum.member?(Users.User.__schema__(:fields), field) do
+      username = case dn do
+        "username=" <> username -> String.split(username, ",") |> Enum.at(0)
+        _ -> nil
+      end
+      if username == nil do
+        :noSuchObject      
+      else
+        query = from Users.User, where: [username: ^username]
+        repo = Storage.get()
+        user = repo.one(query)
+        cond do
+          user == nil -> :noSuchObject
+          Map.get(user, field) == value -> :compareTrue
+          true -> :compareFalse
+        end
+      end
+    else
+      :noSuchAttribute
     end
+    {{:compareResponse, {:LDAPResult, result, "", "", :asn1_NOVALUE}}, bind}
+  end
+
+  #Abandon request, simply ignore
+  def handle({:abandonRequest, _}, bind) do
+    {nil, bind}
+  end
+
+  #handle add requests (with a no permission)
+  def handle({:addRequest, _}, bind) do
+    {{:addResponse, @unsupported}, bind}
   end
 
   # unknown requests, also handles unbinds
-  defp handle(_request, _bind) do
+  def handle(_request, _bind) do
     {nil, :close}
   end
 
