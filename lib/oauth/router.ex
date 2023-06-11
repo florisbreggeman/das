@@ -20,8 +20,7 @@ defmodule OAuth.Router do
     response_types = Map.get(params, "response_type", "code") |> String.downcase() |> String.split()
     redirect = Map.get(params, "redirect_uri")
     state = Map.get(params, "state")
-    #TODO do something with scopes
-    scopes = Map.get(params, "scopes", "user") |> String.downcase() |> String.split()
+    scopes = Map.get(params, "scope", "openid") |> String.downcase() |> String.split()
     cond do
       userid == nil ->
         our_uri = "oauth/authorize?" <> conn.query_string
@@ -40,7 +39,7 @@ defmodule OAuth.Router do
       true ->
         case Enum.at(response_types, 0) do
           "code" ->
-            code = OAuth.Code.generate(%{client: client_id, redirect: redirect, user: userid, scope: scopes |> Enum.join(" ")})
+            code = OAuth.Code.generate(%{client: client_id, redirect: redirect, user: userid, scope: scopes})
             response_params = %{
               code: code
             }
@@ -80,7 +79,7 @@ defmodule OAuth.Router do
           client_id = Map.get(state, :client)
           redirect_uri = Map.get(state, :redirect)
           user_id = Map.get(state, :user)
-          scope = Map.get(state, :scope, "user")
+          scope = Map.get(state, :scope, ["openid"])
           #The line below uses the client id from the code state, and the secret from this request.
           #This verifies two things:
           # 1. The client secret matches the client id
@@ -97,12 +96,12 @@ defmodule OAuth.Router do
               |> put_resp_content_type("application/json")
               |> send_resp(:bad_request, Jason.encode!{%{error: "invalid_grant", error_description: "Invalid Redirect URI"}})
             true ->
-              token = OAuth.Token.generate(%{client: client_id, user: user_id})
+              token = OAuth.Token.generate(%{client: client_id, user: user_id, scope: scope})
               return = %{
                 access_token: token,
                 token_type: "Bearer",
                 expires_in: 4*60*60, #4 hours
-                scope: scope
+                scope: Enum.join(scope, " ")
               }
               conn
               |> put_resp_content_type("application/json")
@@ -135,8 +134,9 @@ defmodule OAuth.Router do
           preferred_username: user.username,
           given_name: user.given_names,
           family_name: user.family_name,
-          email: user.email
         }
+        scopes = Map.get(state, :scope, [])
+        data = if Enum.member?(scopes, "email") do Map.put(data, :email, user.email) else nil end
         conn
         |> put_resp_content_type("application/json")
         |> send_resp(:ok, Jason.encode!(data))

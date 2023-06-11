@@ -65,6 +65,35 @@ defmodule Admin.Client do
     else nil end
   end
 
+  def get_callbackuris(id) do
+    Clients.get_callbackuris(id)
+  end
+
+  def post_callbackuri(id, uri) do
+    if Util.uuid?(id) do
+      repo = Storage.get()
+      object = %Clients.CallbackURI{}
+      data = %{
+        client_id: id,
+        uri: uri
+      }
+      cs = cast(object, data, [:client_id, :uri])
+      cs = cast_assoc(cs, :client)
+      repo.insert(cs)
+    else {:not_found, "invalid client id"} end
+  end
+
+  def delete_callbackuri(id, uri) do
+    if Util.uuid?(id) do
+      repo = Storage.get()
+      object = Clients.get_callbackuri_object(id, uri)
+      if object == nil do
+        {:not_found, "No such callback URI"}
+      else
+        repo.delete(object)
+      end
+    else {:not_found, "invalid id format"} end
+  end
 end
 
 

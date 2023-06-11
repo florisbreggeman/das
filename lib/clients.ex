@@ -48,4 +48,26 @@ defmodule Clients do
       _ -> nil
     end
   end
+
+  def get_callbackuris(id) do
+    try do
+      repo = Storage.get()
+      query = from c in Clients.CallbackURI,
+      where: c.client_id == ^id
+      repo.all(query)
+    rescue
+      _ -> nil
+    end
+  end
+
+  def get_callbackuri_object(client, uri) do
+    try do
+      repo = Storage.get()
+      query = from c in Clients.CallbackURI,
+      where: c.id==^client and c.uri==^uri
+      repo.one(query)
+    rescue
+      _ -> nil
+    end
+  end
 end

@@ -149,6 +149,33 @@ defmodule Admin do
     |> send_resp(status, msg)
   end
 
+  get "/client/:id/callbacks" do
+    data = Admin.Client.get_callbackuris(id)
+    {status, msg, content_type} = case data do
+      nil -> {:not_found, "Invalid ID format", "text/plain"}
+      _ -> {:ok, Jason.encode!(data), "application/json"}
+    end
+    conn
+    |> put_resp_content_type(content_type)
+    |> send_resp(status, msg)
+  end
+
+  post "/client/:id/callbacks" do
+    Util.basic_query(conn, ["uri"], fn conn, body ->
+      uri = Map.get(body, "uri")
+      {status, msg} = Admin.Client.post_callbackuri(id, uri)
+      {status, msg} = case status do
+        :ok -> {:ok, "Added callback uri"}
+        :not_found -> {status, msg}
+        _ -> {:conflict, Util.parse_ecto_error(msg)}
+      end
+      conn
+      |> put_resp_content_type("text/plain")
+      |> send_resp(status, msg)
+    end)
+  end
+
+
   get "/client_ldap_area" do
     conn
     |> put_resp_content_type("text/plain")
