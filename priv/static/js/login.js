@@ -17,7 +17,13 @@ function submit() {
     }
 
     apiCall(PATH_LOGIN, POST, body, function(_res) {
-        window.location.replace("index.html")
+        const params = getParams();
+        const redirect = params.redirect
+        if(redirect === null){
+            window.location.replace("index.html")
+        }else{
+            window.location.replace(redirect)
+        }
     }, function(res, status) {
         if(status === 403){
             notify(res)

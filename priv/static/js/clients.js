@@ -38,7 +38,7 @@ function edit(clientid){
             notify("There was a conflict updating this application: " + String(res));
         }
         if(status==403){
-            window,location.replace('login.html')
+            window,location.replace('login.html?redirect=clients.html')
         }
     });
 }
@@ -97,7 +97,7 @@ function load(){
         });
     }, function(res, status){
         if(status == 403){
-            window.location.replace('login.html');
+            window.location.replace('login.html?redirect=clients.html');
         }else{
             notify("Error when loading: " + String(res));
         }
@@ -124,7 +124,7 @@ function create_client(){
         load();
     }, function(res, status){
         if(status == 403){
-            window.location.replace("login.html");
+            window.location.replace("login.html?redirect=clients.html");
         }else{
             notify("Error creating client: " + String(res));
         }
@@ -137,7 +137,7 @@ function delete_client(id){
         load();
     }, function(res, status){
         if(status===403){
-            window.location.replace("login.html");
+            window.location.replace("login.html?redirect=clients.html");
         }else{
             notify("Error deleting user: " + String(res))
         }
@@ -149,7 +149,7 @@ function view_credentials(id){
         notify("Secret for this application: " + res.secret)
     }, function(res, status){
         if(status===403){
-            window.location.replace("login.html")
+            window.location.replace("login.html?redirect=clients.html")
         }else{
             notify("Error retrieving credentials: " + String(res))
         }

@@ -43,7 +43,7 @@ function edit(userid){
             notify("There was a conflict updating this user: " + String(res));
         }
         if(status==403){
-            window,location.replace('login.html')
+            window,location.replace('login.html?redirect=users.html')
         }
     });
 }
@@ -53,7 +53,7 @@ function change_password(userid){
         notify("Changed user password: new password is " + res.password);
     }, function(res, status){
         if(status===403){
-            window.location.replace("login.html");
+            window.location.replace("login.html?redirect=users.html");
         }else{
             notify("Error updating password: " + String(res));
         }
@@ -129,7 +129,7 @@ function load(){
         });
     }, function(res, status){
         if(status == 403){
-            window.location.replace('login.html');
+            window.location.replace('login.html?redirect=users.html');
         }else{
             notify("Error when loading: " + String(res));
         }
@@ -162,7 +162,7 @@ function create_user(){
             load();
         }, function(res, status){
             if(status == 403){
-                window.location.replace("login.html");
+                window.location.replace("login.html?redirect=users.html");
             }else{
                 notify("Error creating user: " + String(res));
             }
@@ -176,7 +176,7 @@ function delete_user(id){
         load();
     }, function(res, status){
         if(status===403){
-            window.location.replace("login.html");
+            window.location.replace("login.html?redirect=users.html");
         }else{
             notify("Error deleting user: " + String(res))
         }

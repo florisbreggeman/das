@@ -2,6 +2,12 @@ const PATH_WHOAMI = 'session/whoami';
 const PATH_CHANGE_PASSWORD = 'session/change_password';
 const PATH_LOGOUT = "session/logout";
 
+function failure(res, status){
+    if(status == 403){
+        window.location.replace("login.html?redirect=index.html")
+    }
+}
+
 function add_text_field(description, text, box){
     let description_element = document.createElement('b');
     description_element.appendChild(document.createTextNode(description));
@@ -32,11 +38,7 @@ function load_me(){
         given_names_field.value = res.given_names;
         family_name_field = document.getElementById('family_name_field');
         family_name_field.value = res.family_name;
-    }, function(res, status) {
-        if(status == 403){
-            window.location.replace("login.html")
-        }
-    });
+    }, failure);
 }
 
 function submit_form(){
@@ -48,11 +50,7 @@ function submit_form(){
     }
     apiCall(PATH_WHOAMI, PUT, body, function(res){
         load_me();
-    }, function(res, status) {
-        if(status == 403){
-            window.location.replace("login.html")
-        }
-    });
+    }, failure);
 }
 
 function change_password(){
@@ -93,7 +91,7 @@ function logout(){
         window.location.replace("login.html");
     }, function(status, res){
         if(status == 403){
-            window.location.replace("login.html");
+            window.location.replace("login.html?redirect=index.html");
         }else{
             alert("Unknown error logging out: " + String(res))
         }
