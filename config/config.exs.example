@@ -36,6 +36,15 @@ util_socket_location: "/tmp/das_util.sock",
 #The file permissions on the utility socket. Defaults to 200.
 util_socket_permissions: 200
 
+#If DAS detects an empty user database, should it add a default user? (defaults to false).
+#For security reasons, it is recommended to disable this setting after initial setup of the software.
+default_add: true,
+#username, email, and password of this user: 
+default_username: "admin",
+default_email: "admin@example.com",
+default_password: "badgers"
+
+
 #Settings for Postgres or MySQL; uncomment the one which applies
 #config :das, Storage.Postgres
 #config :das, Storage.MySQL,

@@ -1,5 +1,7 @@
 defmodule Das do
 
+  import Ecto.Query
+
   require Logger
 
   use Application
@@ -40,16 +42,23 @@ defmodule Das do
       File.chmod(Application.get_env(:das, :util_socket_location, @default_socket_location), Application.get_env(:das, :util_socket_permissions, 200))
     end
 
-    #just to easily populate the db
-    repo = Storage.get()
-    user = %Users.User{
-      username: "floris",
-      name: "Floris Tenzin",
-      email: "info@sfbtech.nl",
-      admin: true,
-      password: Bcrypt.hash_pwd_salt("admin")
-    }
-    #repo.insert(user)
+    if Application.get_env(:das, :default_add, false) do
+      repo = Storage.get()
+      query = from u in Users.User, select: count(u.id)
+      count = repo.one(query)
+      if count == 0 do
+        Logger.warning("User table empty; inserting default user")
+        user = %Users.User{
+          username: Application.get_env(:das, :default_username, "admin"),
+          name: "Default User",
+          email: Application.get_env(:das, :default_email, "admin@example.com"),
+          admin: true,
+          password: Bcrypt.hash_pwd_salt(Application.get_env(:das, :default_password, "badgers"))
+        }
+        repo.insert(user)
+      end
+    end
+
 
     #make sure we have the required encryption keys, generate otherwise
     OAuth.Key.ensure()
