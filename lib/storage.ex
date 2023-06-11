@@ -11,11 +11,13 @@ defmodule Storage do
   Returns the active Ecto.Repo object
   """
   def get() do
-    case Application.get_env(:das, :db_type) do
+    return = case Application.get_env(:das, :db_type) do
       :mysql -> Storage.MySQL
       :postgres -> Storage.Postgres
       _ -> Storage.SQLite
     end
+    IO.inspect(return)
+    return
   end
 
 
