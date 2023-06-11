@@ -126,8 +126,13 @@ defmodule LDAP.Handler do
     {response, nil}
   end
   def handle({:compareRequest, {:CompareRequest, dn, {:AttributeValueAssertion, field, value}}}, bind) do
-    field = String.to_atom(field)
-    result = if Enum.member?(Users.User.__schema__(:fields), field) do
+    #we first want to check if the field exists in the schema, to avoid creating atoms from unverified input
+    field = field_to_atom(field)
+    result = if field == nil do
+      :noSuchAttribute
+    else
+      #now that we know that the field name exists, we can convert to atom
+      field = String.to_atom(field)
       username = case dn do
         "username=" <> username -> String.split(username, ",") |> Enum.at(0)
         _ -> nil
@@ -144,8 +149,6 @@ defmodule LDAP.Handler do
           true -> :compareFalse
         end
       end
-    else
-      :noSuchAttribute
     end
     {{:compareResponse, {:LDAPResult, result, "", "", :asn1_NOVALUE}}, bind}
   end
@@ -192,20 +195,34 @@ defmodule LDAP.Handler do
   end
 
   def build_query({:equalityMatch, {_attributeValueAssertion, field, value}}, query, :where) do
-    field = String.to_atom(field)
-    if Users.User.__schema__(:fields) |> Enum.member?(field) do
-      from query, [{:where, ^Keyword.new([{field, value}])}]
-    else
+    field = field_to_atom(field)
+    if field == nil do
       query
+    else
+      from query, [{:where, ^Keyword.new([{field, value}])}]
     end
   end
 
   def build_query({:equalityMatch, {_attributeValueAssertion, field, value}}, query, :or_where) do
-    field = String.to_atom(field)
-    if Users.User.__schema__(:fields) |> Enum.member?(field) do
-      from query, [{:or_where, ^Keyword.new([{field, value}])}]
-    else
+    field = field_to_atom(field)
+    if field == nil do
       query
+    else
+      from query, [{:or_where, ^Keyword.new([{field, value}])}]
+    end
+  end
+
+  _doc = """
+  Convert an unverified input string to an atom if and only if it corresponds to a field of the user object
+  Can be used to prevent a denial of service attack aiming for the atom limit
+  Returns either an atom guaranteed to be a field of Users.User, or nil
+  """
+  defp field_to_atom(field) do
+    string_fields = Enum.map(Users.User.__schema__(:fields), fn x -> Atom.to_string(x) end)
+    if Enum.member?(string_fields, field) do
+      String.to_atom(field)
+    else
+      nil
     end
   end
 
