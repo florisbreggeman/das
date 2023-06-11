@@ -1,27 +1,55 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Hello, World!</title>
+        <title>DAS - Administer Users</title>
         <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="css/pure-min.css">
+        <link rel="stylesheet" href="css/grids-responsive-min.css">
+        <link rel="stylesheet" href="css/index.css">
+        <link rel="stylesheet" href="css/jackbox.css">
     </head>
     <body>
+        <div id='layout'>
+        <a href='#menu' id='menuLink' class='menu-link'>
+            <span>Menu</span>
+        </a>
+        <div id='menu'>
+            <div class='pure-menu'>
+                <span class='pure-menu-heading'>DAS</span>
+                <ul class='pure-menu-list'>
+                    <li class='pure-menu-item'><a href='index.html' class='pure-menu-link'>My Page</a></li>
+                    <li class='pure-menu-item pure-menu-selected'><a href='#' class='pure-menu-link'>Users</a></li>
+                    <li class='pure-menu-item'><a href='clients.html' class='pure-menu-link'>Applications</a></li>
+                    <li class='pure-menu-item'><a id='logout-menu' href='#menu' class='pure-menu-link'>Log out</a></li>
+                </ul>
+            </div>
+        </div>
+
         <div id='main'>
             <h1>Administer users</h1>
-            <p id='notifications'></p>
             <h2>Create new users</h2>
-            <p>
-            <input type="text" id="username" placeholder="username"></input><br/>
-            <input type="text" id="email" placeholder="email"></input><br/>
-            <input type="text" id="name" placeholder="Name"></input><br/>
-            <b>Admin? </b><input type="checkbox" id="admin"></input><br/>
-            <input type="password" id="password" placeholder="Password"></input><br/>
-            <input type="password" id="confirm" placeholder="Confirm password"></input><br/>
-            <button id="create_user">Create User</button>
+            <p class='pure-form pure-form-stacked'>
+            <label for="username">Username</label>
+            <input type="text" id="username" class="pure-input pure-input-1"></input>
+            <label for="email">Email</label>
+            <input type="text" id="email" class="pure-input pure-input-1"></input>
+            <label for="name">Name</label>
+            <input type="text" id="name" class="pure-input pure-input-1"></input>
+            <label for="admin" class="pure-checkbox">
+            <input type="checkbox" id="admin"></input> Admin
+            </label>
+            <label for="password">Password<label>
+            <input type="password" id="password" placeholder="Password" class="pure-input pure-input-1"></input>
+            <label for="password">Confirm Password<label>
+            <input type="password" id="confirm" placeholder="Confirm password" class="pure-input pure-input-1"></input><br/>
+            <button id="create_user" class='pure-button pure-button-primary'>Create User</button>
             </p>
             <h2>Current Users</h2>
             <ul id='users_list'>
 
             </ul>
+        <script type='text/javascript' src='js/jackbox.js'></script>
         <script type='text/javascript' src='js/util.js'></script>
         <script type='text/javascript' src='js/users.js'></script>
     </body>

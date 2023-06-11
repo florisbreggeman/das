@@ -1,24 +1,24 @@
 const PATH_USER = "admin/user";
 
-function add_field(description, id, value, box){
-    let description_element = document.createElement('b');
+function add_field(description, value_name, value, box, element_id, disabled=false){
+    let description_element = document.createElement('label');
+    description_element.for = "user-"+element_id+"-"+value_name;
     description_element.appendChild(document.createTextNode(description));
     let field = document.createElement('input');
-    field.classList.add(id)
-    field.value = value
-    field.type = "text"
+    field.id = "user-"+element_id+"-"+value_name;
+    field.classList.add(value_name)
+    field.classList.add('pure-input');
+    field.classList.add('pure-input-1');
+    field.value = value;
+    field.type = "text";
+    if(disabled){
+        field.disabled = true;
+    }
 
     box.appendChild(description_element);
     box.appendChild(field)
-    box.appendChild(document.createElement('br'));
 
     return field;
-}
-
-function notify(text){
-    element = document.getElementById('notifications');
-    removeAllChildNodes(element);
-    element.appendChild(document.createTextNode(text));
 }
 
 function edit(userid){
@@ -34,11 +34,11 @@ function edit(userid){
     }
 
     apiCall(PATH_USER+"/"+String(userid), PUT, body, function(res){
-        notify("User updated");
+        Jackbox.success("User updated");
         load();
     }, function(res, status){
         if(status==409){
-            notify("There was a conflict updating this user: " + String(res));
+            Jackbox.error("There was a conflict updating this user: " + String(res));
         }
         if(status==403){
             window,location.replace('login.html?redirect=users.html')
@@ -48,12 +48,12 @@ function edit(userid){
 
 function change_password(userid){
     apiCall(PATH_USER+"/"+String(userid)+"/change_password", PUT, null, function(res){
-        notify("Changed user password: new password is " + res.password);
+        Jackbox.success("Changed user password: new password is " + res.password);
     }, function(res, status){
         if(status===403){
             window.location.replace("login.html?redirect=users.html");
         }else{
-            notify("Error updating password: " + String(res));
+            Jackbox.error("Error updating password: " + String(res));
         }
     });
 }
@@ -65,67 +65,63 @@ function load(){
 
         res.forEach(function(item){
             element = document.createElement('li');
+            element.classList.add('pure-form');
+            element.classList.add('pure-form-stacked');
             element.id='user-'+String(item.id);
 
-            id_description = document.createElement('b');
-            id_description.appendChild(document.createTextNode('Id: '));
-            element.appendChild(id_description);
-            id_field = document.createElement('span');
-            id_field.appendChild(document.createTextNode(item.id));
-            element.appendChild(id_field);
-            element.appendChild(document.createElement('br'));
-
-            username_description = document.createElement('b');
-            username_description.appendChild(document.createTextNode('Username: '));
-            element.appendChild(username_description);
-            username_field = document.createElement('span');
-            username_field.appendChild(document.createTextNode(item.username));
-            element.appendChild(username_field);
-            element.appendChild(document.createElement('br'));
-
-            email_field = add_field("Email: ", 'email', item.email, element);
+            add_field("Id", 'id', item.id, element, item.id, true);
+            add_field("Username", 'username', item.username, element, item.id, true);
+            email_field = add_field("Email", 'email', item.email, element, item.id);
             onEnter(email_field, function(){
                 edit(item.id)
             });
-            name_field = add_field("Name: ", 'name', item.name, element);
+            name_field = add_field("Name", 'name', item.name, element, item.id);
             onEnter(name_field, function(){
                 edit(item.id)
             });
 
-            admin_description = document.createElement('b');
-            admin_description.appendChild(document.createTextNode('Admin: '));
+            admin_description = document.createElement('label');
             admin_box = document.createElement('input');
             admin_box.type = 'checkbox';
             admin_box.classList.add('admin');
             if(item.admin){
                 admin_box.checked = true;
             }
+            admin_description.appendChild(admin_box);
+            admin_description.appendChild(document.createTextNode(' Admin'));
             element.appendChild(admin_description);
-            element.appendChild(admin_box);
-            element.appendChild(document.createElement('br'));
 
-            edit_button = document.createElement('button');
+            let button_group = document.createElement('div');
+            button_group.role = "group";
+            button_group.classList.add('pure-button-group');
+
+            let edit_button = document.createElement('button');
             edit_button.appendChild(document.createTextNode('Edit Data'));
-            element.appendChild(edit_button);
+            edit_button.classList.add('pure-button');
+            edit_button.classList.add('pure-button-primary');
+            button_group.appendChild(edit_button);
             edit_button.addEventListener("click", function(){edit(item.id);});
             
-            password_button = document.createElement('button');
+            let password_button = document.createElement('button');
             password_button.appendChild(document.createTextNode('Change Password'));
             password_button.addEventListener("click", function(){change_password(item.id);});
-            element.appendChild(password_button);
+            password_button.classList.add('pure-button');
+            button_group.appendChild(password_button);
 
-            delete_button = document.createElement('button');
+            let delete_button = document.createElement('button');
             delete_button.appendChild(document.createTextNode('Delete'));
             delete_button.addEventListener("click", function(){delete_user(item.id);});
-            element.appendChild(delete_button);
+            delete_button.classList.add('pure-button');
+            button_group.appendChild(delete_button);
 
+            element.appendChild(button_group);
             list.appendChild(element);
         });
     }, function(res, status){
         if(status == 403){
             window.location.replace('login.html?redirect=users.html');
         }else{
-            notify("Error when loading: " + String(res));
+            Jackbox.error("Error when loading: " + String(res));
         }
     });
 }
@@ -140,7 +136,7 @@ function create_user(){
 
 
     if(password_field.value !== confirm_field.value){
-        notify("Passwords do not match");
+        Jackbox.warning("Passwords do not match");
     }else{
         body = {
             'username': username_field.value,
@@ -150,13 +146,13 @@ function create_user(){
             'password': password_field.value
         }
         apiCall(PATH_USER, POST, body, function(res){
-            notify("Created user");
+            Jackbox.success("Created user");
             load();
         }, function(res, status){
             if(status == 403){
                 window.location.replace("login.html?redirect=users.html");
             }else{
-                notify("Error creating user: " + String(res));
+                Jackbox.error("Error creating user: " + String(res));
             }
         });
     }
@@ -164,18 +160,20 @@ function create_user(){
 
 function delete_user(id){
     apiCall(PATH_USER+"/"+String(id), DELETE, null, function(res){
-        notify("Deleted user");
+        Jackbox.success("Deleted user");
         load();
     }, function(res, status){
         if(status===403){
             window.location.replace("login.html?redirect=users.html");
         }else{
-            notify("Error deleting user: " + String(res))
+            Jackbox.error("Error deleting user: " + String(res))
         }
     });
 }
 
 document.addEventListener("DOMContentLoaded", function(event) {
+    Jackbox.init();
+
     username_field = document.getElementById("username");
     email_field = document.getElementById("email");
     name_field = document.getElementById("name");
