@@ -171,15 +171,7 @@ defmodule OAuth.Router do
   end
 
   get "/jwks" do
-    pem = OAuth.Key.get_pub()
-    pem_entry = :public_key.pem_decode(pem) |> Enum.at(0)
-    {_, modulus, pubex} = :public_key.pem_entry_decode(pem_entry)
-    claims = %{
-      kty: "RSA",
-      alg: "RS256",
-      n: modulus,
-      e: pubex,
-    }
+    claims = OAuth.IDToken.JWK.get()
     conn
     |> put_resp_content_type("application/jwk+json")
     |> send_resp(:ok, Jason.encode!(claims))

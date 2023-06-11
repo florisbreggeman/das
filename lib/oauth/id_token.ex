@@ -25,13 +25,48 @@ defmodule OAuth.IDToken.Signer do
   """
 
   def start_link(_opts) do
-    pem = OAuth.Key.get_priv()
-    signer = Joken.Signer.create("RS256", %{"pem" => pem})
-    Agent.start_link(fn -> signer end, name: OAuth.IDToken.Signer)
+    Agent.start_link(fn ->
+      pem = OAuth.Key.get_priv()
+      Joken.Signer.create("RS256", %{"pem" => pem})
+    end, name: OAuth.IDToken.Signer)
   end
 
   def get() do
     Agent.get(OAuth.IDToken.Signer, fn x -> x end)
+  end
+end
+defmodule OAuth.IDToken.JWK do
+  use Agent
+
+  @moduledoc """
+  Stores the JWK encoded parameters, because they're quite a lot of effort to parse
+  """
+
+  def start_link(_opts) do
+    Agent.start_link(fn -> 
+      pem = OAuth.Key.get_pub()
+      pem_entry = :public_key.pem_decode(pem) |> Enum.at(0)
+      {_, modulus, pubex} = :public_key.pem_entry_decode(pem_entry)
+  
+      modulus_digits = Integer.digits(modulus, 256)
+      modulus_bin = Enum.into(modulus_digits, <<>>, fn digit -> <<digit>> end)
+      modulus_encoded = Base.url_encode64(modulus_bin)
+  
+      pubex_digits = Integer.digits(pubex, 256)
+      pubex_bin = Enum.into(pubex_digits, <<>>, fn digit -> <<digit>> end)
+      pubex_encoded = Base.url_encode64(pubex_bin)
+  
+      %{
+        kty: "RSA",
+        alg: "RS256",
+        n: modulus_encoded,
+        e: pubex_encoded,
+      }
+    end, name: OAuth.IDToken.JWK)
+  end
+
+  def get() do
+    Agent.get(OAuth.IDToken.JWK, fn x -> x end)
   end
 end
 
