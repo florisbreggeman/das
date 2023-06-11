@@ -21,7 +21,7 @@ defmodule Forward.Router do
     scheme = Map.get(params, "scheme", "https://")
     host = Map.get(params, "host")
     uri = Map.get(params, "uri", "/")
-    client = if host == nil do nil else Clients.get_by_name(host) end
+    client = if host == nil do nil else Clients.get_by_url(host) end
     cond do
       host == nil ->
         conn
@@ -30,7 +30,7 @@ defmodule Forward.Router do
       client == nil ->
         conn
         |> put_resp_content_type("text/plain")
-        |> send_resp(:internal_server_error, "The domain #{host} is not a registered reverse-proxy client.\r\nIf you are the system administrator and the domain should belong to a reverse-proxy authenticated website, please register a reverse-proxy application with this domain")
+        |> send_resp(:internal_server_error, "The domain #{host} is not a registered forward-auth client.\r\nIf you are the system administrator and the domain should belong to a forward-auth authenticated website, please register a forward-auth application with this domain")
       userid == nil -> #we redirect to the login portal
         current_url = "forward_auth/create_session?scheme=#{scheme}&host="<>URI.encode_www_form(host)<>"&uri="<>URI.encode_www_form(uri)
         conn

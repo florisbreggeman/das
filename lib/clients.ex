@@ -31,11 +31,11 @@ defmodule Clients do
   end
 
   @doc """
-  Get a single client by name
+  Get a single client by URL
   """
-  def get_by_name(name) do
+  def get_by_url(url) do
     query = from c in Clients.Client,
-      where: c.name == ^name
+      where: c.url == ^url
     repo = Storage.get()
     repo.one(query)
   end

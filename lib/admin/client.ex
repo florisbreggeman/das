@@ -15,9 +15,9 @@ defmodule Admin.Client do
     client = %Clients.Client{}
     secret = :crypto.strong_rand_bytes(32) |> Base.encode16()
     data = Map.put(data, "secret", secret)
-    cast(client, data, [:type, :name, :secret])
+    cast(client, data, [:type, :name, :secret, :url])
     |> validate_required([:type, :name])
-    |> validate_inclusion(:type, ["ldap", "oauth", "proxy"])
+    |> validate_inclusion(:type, ["ldap", "oauth", "forward", "proxy"])
     |> repo.insert()
   end
 
@@ -35,8 +35,7 @@ defmodule Admin.Client do
         {:not_found, "No client with id #{id}"}
       else
         data = Map.drop(data, ["id", "type", "secret"]) #ignore bad updates
-        cast(client, data, [:name])
-        |> validate_subset(:type, ["ldap", "oauth", "saml"])
+        cast(client, data, [:name, :url])
         |> repo.update()
       end
     else {:not_found, "invalid id format"} end

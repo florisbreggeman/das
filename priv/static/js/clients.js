@@ -25,9 +25,11 @@ function notify(text){
 function edit(clientid){
     element = document.getElementById('client-'+String(clientid));
     name_field = element.querySelector('.name');
+    url_field = element.querySelector('.url');
 
     body = {
         'name': name_field.value,
+        'url': url_field.value
     }
 
     apiCall(PATH_CLIENT+"/"+String(clientid), PUT, body, function(res){
@@ -77,6 +79,22 @@ function load(){
             onEnter(name_field, function(){
                 edit(item.id)
             });
+
+            let url_field;
+            switch(item.type){
+                case "forward":
+                    url_field = add_field("Domain: ", 'url', item.url, element);
+                    break;
+                case "proxy":
+                    url_field = add_field("Proxy to: ", 'url', item.url, element);
+                    break;
+                default:
+                    url_field = add_field("URL: ", 'url', item.url, element);
+            }
+            onEnter(url_field, function(){
+                edit(item.id)
+            });
+
 
             if(item.type === "oauth"){
                 callbacks = document.createElement('div');
@@ -181,10 +199,12 @@ function delete_callback(client_id, uri, element){
 function create_client(){
     name_field = document.getElementById("name");
     type_field = document.getElementById("type");
+    url_field = document.getElementById("url");
 
     body = {
         'name': name_field.value,
-        'type': type_field.value
+        'type': type_field.value,
+        'url': url_field.value
     }
     apiCall(PATH_CLIENT, POST, body, function(res){
         notify("Created client");
@@ -223,12 +243,31 @@ function view_credentials(id){
     });
 }
 
+function set_url_placeholder(){
+    let type_field = document.getElementById("type");
+    let url_field = document.getElementById("url");
+
+    let value = type_field.value
+    switch(value){
+        case "forward":
+            url_field.placeholder = "Service Domain";
+            break;
+        case "proxy":
+            url_field.placeholder = "Adress to proxy to";
+            break;
+        default:
+            url_field.placeholder = "URL";
+    }
+}
+
+
 
 document.addEventListener("DOMContentLoaded", function(event) {
     name_field = document.getElementById("name");
     onEnter(name_field, create_client);
 
     document.getElementById("create_client").addEventListener("click", create_client);
+    document.getElementById("type").addEventListener("change", set_url_placeholder);
 
     load_ldapArea();
 

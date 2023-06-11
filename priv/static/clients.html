@@ -13,10 +13,12 @@
             <h2>Add new client application</h2>
             <p>
             <input type="text" id="name" placeholder="name"></input><br/>
+            <input type="text" id="url" placeholder="URL"></input><br/>
             <select id="type">
                 <option value="oauth">OAuth</option>
                 <option value="ldap">LDAP</option>
-                <option value="proxy">Reverse Proxy</option>
+                <option value="forward">Forward Auth</option>
+                <option value="proxy">Proxy auth</option>
             </select>
             <button id="create_client">Add Client Application</button>
             </p>

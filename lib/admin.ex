@@ -89,7 +89,7 @@ defmodule Admin do
   end
 
   post "/client" do
-    Util.basic_query(conn, ["name"], fn conn, body -> 
+    Util.basic_query(conn, ["name", "url"], fn conn, body -> 
       {status, msg} = Admin.Client.post(body)
       {status, msg} = case status do
         :ok -> {:ok, "Added client"}
