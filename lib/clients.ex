@@ -16,13 +16,18 @@ defmodule Clients do
   end
   
   @doc """
-  Gets a single user that matches the id
+  Gets a single client that matches the id
   """
   def get(id) do
-    query = from c in Clients.Client,
-      where: c.id == ^id
-    repo = Storage.get()
-    repo.one(query)
+    try do
+      query = from c in Clients.Client,
+        where: c.id == ^id
+      repo = Storage.get()
+      repo.one(query)
+    rescue
+      Ecto.Query.CastError -> nil #incorrectly formatted client id
+      e -> reraise e, __STACKTRACE__
+    end
   end
 
   @doc """
