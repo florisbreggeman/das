@@ -36,7 +36,9 @@ defmodule Das.MixProject do
       {:ldap_asn, path: "ldap_asn/", manager: :rebar3},
       {:joken, "~> 2.6"},
       {:castore, "~> 1.0"},
-      {:mint, "~> 1.0"}
+      {:mint, "~> 1.0"},
+      {:nimble_totp, "~> 1.0"},
+      {:eqrcode, "~> 0.1.10"}
     ]
   end
 end
