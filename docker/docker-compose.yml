@@ -1,0 +1,18 @@
+version: '2.1'
+services:
+  das:
+    restart: on-failure:5
+    build:
+      context: '.'
+      dockerfile: 'Dockerfile'
+    ports:
+      - 8080:8080
+      - 8081:8081
+      - 3389:3389
+    environment:
+      - DAS_DB_TYPE=mysql
+      - DAS_WEB_HOST=0.0.0.0
+      - DAS_LDAP_HOST=0.0.0.0
+      - DAS_INIT_SETUP=true
+      - DAS_DB_HOST=database
+      - DAS_DB_PASS="pass"
