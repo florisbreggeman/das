@@ -76,7 +76,7 @@ defmodule OAuth.Router do
     #verify the client first
     client_id = Map.get(body, "client_id")
     secret = Map.get(body, "client_secret")
-    secret = if secret == nil do Map.get(headers, "authorization", "") |> String.split() |> Enum.at(1) else secret end #allow for authorization via HTTP headers if not provided in body
+    secret = if secret == nil do Map.get(headers, "authorization", "") |> String.split() |> Enum.at(1) |> Base.decode64!() else secret end #allow for authorization via HTTP headers if not provided in body
     if Clients.verify(client_id, secret) == nil do
       conn
       |> put_resp_content_type("text/plain")
