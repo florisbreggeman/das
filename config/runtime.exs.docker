@@ -6,7 +6,7 @@ config :das,
 db_type: System.get_env("DAS_DB_TYPE", "sqlite") |> String.to_existing_atom(),
 #Which ip and port to listen on for web requests. Mind the syntax for the ip bind.
 #Defaults to 127.0.0.0:8080.
-bind_ip: System.get_env("DAS_WEB_HOST", "127.0.0.1") |> String.split(".") |> Enum.map(&String.to_integer/1) |> List.to_tuple(),
+bind_ip: System.get_env("DAS_WEB_HOST", "0.0.0.0") |> String.split(".") |> Enum.map(&String.to_integer/1) |> List.to_tuple(),
 bind_port: System.get_env("DAS_WEB_PORT", "8080") |> String.to_integer(),
 #Alternatively, uncomment these lines (and comment the above) to listen on a socket
 #bind_ip: {:local, "/var/run/das.sock"}
@@ -18,7 +18,7 @@ session_timeout: 8*60,
 #LDAP settings
 #The IP and port for the LDAP server to listen on. Mind the syntax for the IP
 #Default to 127.0.0.1:3389
-ldap_ip: System.get_env("DAS_LDAP_HOST", "127.0.0.1") |> String.split(".") |> Enum.map(&String.to_integer/1) |> List.to_tuple(),
+ldap_ip: System.get_env("DAS_LDAP_HOST", "0.0.0.0") |> String.split(".") |> Enum.map(&String.to_integer/1) |> List.to_tuple(),
 ldap_port: System.get_env("DAS_LDAP_PORT", "3389") |> String.to_integer(),
 #Alternatively, uncomment these lines (and comment the above) to listen for LDAP on a socket
 #ldap_ip: {:local, "/var/run/das_ldap.sock"}
