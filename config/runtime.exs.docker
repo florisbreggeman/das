@@ -3,11 +3,11 @@ import Config
 #Global settings
 config :das,
 #which type of database to use; optoins are :sqlite, :mysql, or :postgres
-db_type: :sqlite,
+db_type: System.get_env("DAS_DB_TYPE", "sqlite") |> String.to_existing_atom(),
 #Which ip and port to listen on for web requests. Mind the syntax for the ip bind.
 #Defaults to 127.0.0.0:8080.
-bind_ip: {127, 0, 0, 1},
-bind_port: 8080,
+bind_ip: System.get_env("DAS_WEB_HOST", "0.0.0.0") |> String.split(".") |> Enum.map(&String.to_integer/1) |> List.to_tuple(),
+bind_port: System.get_env("DAS_WEB_PORT", "8080") |> String.to_integer(),
 #Alternatively, uncomment these lines (and comment the above) to listen on a socket
 #bind_ip: {:local, "/var/run/das.sock"}
 #bind_port: 0
@@ -18,19 +18,19 @@ session_timeout: 8*60,
 #LDAP settings
 #The IP and port for the LDAP server to listen on. Mind the syntax for the IP
 #Default to 127.0.0.1:3389
-ldap_ip: {127, 0, 0, 1},
-ldap_port: 3389,
+ldap_ip: System.get_env("DAS_LDAP_HOST", "0.0.0.0") |> String.split(".") |> Enum.map(&String.to_integer/1) |> List.to_tuple(),
+ldap_port: System.get_env("DAS_LDAP_PORT", "3389") |> String.to_integer(),
 #Alternatively, uncomment these lines (and comment the above) to listen for LDAP on a socket
 #ldap_ip: {:local, "/var/run/das_ldap.sock"}
 #ldap_port: 0
 #The two lines under here define where in the presented LDAP directory structure the users and clients will appear to be
 #Altering these settings will have no effect on the functionality of the software, and its advised to leave them alone if you don't know what they represent.
 #The value of these is mostly irrelevant, as DAS will interpret any values as referring to the users table; however, client applications may expect them to be valid LDAP DN components.
-ldap_clients_area: "ou=clients,dc=das,dc=nl",
-ldap_users_area: "ou=users,dc=das,dc=nl",
+ldap_clients_area: System.get_env("DAS_LDAP_CLIENTS", "ou=clients,dc=das,dc=nl"),
+ldap_users_area: System.get_env("DAS_LDAP_USERS", "ou=users,dc=das,dc=nl"),
 #The port to listen to for forward authentication
 #Defaults to 8081
-forward_port: 8081,
+forward_port: System.get_env("DAS_FWD_PORT", "8081") |> Integer.parse(),
 
 #Enable the Utility socket? Defaults to false
 util_socket: false,
@@ -41,11 +41,11 @@ util_socket_permissions: 200,
 
 #If DAS detects an empty user database, should it add a default user? (defaults to false).
 #For security reasons, it is recommended to disable this setting after initial setup of the software.
-default_add: true,
+default_add: System.get_env("DAS_INIT_SETUP", "false") in ["true", "TRUE", "True"],
 #username, email, and password of this user: 
-default_username: "admin",
-default_email: "admin@example.com",
-default_password: "badgers"
+default_username: System.get_env("DAS_INIT_USER", "admin"),
+default_email: System.get_env("DAS_INIT_EMAIL", "admin@example.com"),
+default_password: System.get_env("DAS_INIT_PASS", "badgers")
 
 
 #Settings for Postgres or MySQL; uncomment the one which applies
@@ -56,8 +56,8 @@ default_password: "badgers"
 #database: "das",
 #password: "password"
 
-#Settings for sqlite
-config :das, Storage.SQLite,
-#Make sure the path is writable by DAS. Preferably always use absolute paths here.
-database: "~/db.sqlite"
-
+config :das, Map.get(%{"sqlite" => Storage.SQLite, "mysql" => Storage.MySQL, "postgres" => Storage.Postgres}, System.get_env("DAS_DB_TYPE", "sqlite"), "Invalid DB Type"),
+database: System.get_env("DAS_DB_NAME", "das"),
+username: System.get_env("DAS_DB_USER", "das"),
+password: System.get_env("DAS_DB_PASS", "badgers"),
+hostname: System.get_env("DAS_DB_HOST", "localhost")

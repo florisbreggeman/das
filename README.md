@@ -72,12 +72,8 @@ If you don't want to install unneeded software directly onto your system, it is 
 
 ### Docker support
 
-Currently, there are no pre-built docker images for DAS, because I have not used docker in years.
-If you want to run DAS in docker, I recommend basing it off a Debian 11 image.
-You will need to export the ports for LDAP and proxy authentication if you wish to use those features.
-
-If you are a fervent docker user and would like to contribute, a pre-made docker image would be much appreciated.
-If you feel so inclined, please submit a pull request where you update this section of the README to refer to your docker image, so I can qualify it and make it official.
+A `Dockerfile` is provided in the `docker` directory of this repo, along with an example `docker-compose.yml`. It uses environment variables as specified in `config/runtime.exs.docker`
+so it is easiest to look at that to see what is supported.
 
 ## Usage
 
