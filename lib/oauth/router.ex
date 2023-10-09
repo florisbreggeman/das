@@ -76,11 +76,21 @@ defmodule OAuth.Router do
     #verify the client first
     client_id = Map.get(body, "client_id")
     secret = Map.get(body, "client_secret")
-    [client_id, secret] = if secret == nil and client_id == nil do 
-      Map.get(headers, "authorization", "") |> String.split() |> Enum.at(1, "") |> Base.decode64! |> String.split(":")  #allow for authorization via HTTP headers if not provided in body
+
+    [client_id, secret] = if secret == nil or client_id == nil do 
+      plaintext_header = Map.get(headers, "authorization", "") |> String.split |> Enum.at(1, "") |> Base.decode64()
+      header_auth = case plaintext_header do
+        {:ok, text} -> text |> String.split(":")
+        _ -> nil
+      end
+      case header_auth do
+        [client_id, secret] -> [client_id, secret]
+        _ -> [nil, nil]
+      end
     else 
       [client_id, secret]
     end 
+
     if Clients.verify(client_id, secret) == nil do
       conn
       |> put_resp_content_type("text/plain")
