@@ -17,7 +17,7 @@ session_timeout: 8*60,
 
 #LDAP settings
 #The IP and port for the LDAP server to listen on. Mind the syntax for the IP
-#Default to 127.0.0.1:3389
+#Default to 127.0.0.1:389
 ldap_ip: {127, 0, 0, 1},
 ldap_port: 3389,
 #Alternatively, uncomment these lines (and comment the above) to listen for LDAP on a socket
