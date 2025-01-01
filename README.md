@@ -23,6 +23,7 @@ To install DAS:
  - Download a release from your operating system from the release page to a target folder of your choice, e.g. `/opt/das`, and enter this directory (we will call this the root directory)
  - Review the runtime configuration in `releases/1.0/runtime.exs` to see if there are any settings you would like to change
    - Most notably, you probably want to change the `default_` settings to ensure the initial user it to your liking
+   - Note the configuration file is in Elixir syntax, backslashes need to be escaped.
  - Review the configuration settings in `config/runtime.exs` to see if there's anything you would like to change
  - It is recommended you make a new user and group by running `useradd -U -b <root dir> das` 
    - You must then also change the ownership of the folder by running `chown -R das:das .`

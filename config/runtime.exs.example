@@ -1,5 +1,8 @@
 import Config
 
+#NB: this configuration file is in Elixir syntax.
+#Backslashes need to be escaped!
+
 #Global settings
 config :das,
 #which type of database to use; optoins are :sqlite, :mysql, or :postgres
@@ -43,6 +46,7 @@ util_socket_permissions: 200,
 #For security reasons, it is recommended to disable this setting after initial setup of the software.
 default_add: true,
 #username, email, and password of this user: 
+#NB: Backslashes need to be escaped, better not to use them here (especially for the password)
 default_username: "admin",
 default_email: "admin@example.com",
 default_password: "badgers"
