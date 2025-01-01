@@ -31,20 +31,20 @@ defmodule Das.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:ecto, "~> 3.8"},
-      {:ecto_sql, "~>3.0"},
-      {:myxql, "~>0.6.3"},
-      {:postgrex, "~>0.16.0"},
-      {:ecto_sqlite3, "~>0.9.0"},
-      {:bcrypt_elixir, "~> 3.0"},
-      {:plug_cowboy, "~> 2.0"},
-      {:jason, "~> 1.2"},
+      {:ecto, "~> 3.12"},
+      {:ecto_sql, "~>3.12"},
+      {:myxql, "~>0.7"},
+      {:postgrex, "~>0.19"},
+      {:ecto_sqlite3, "~>0.11"},
+      {:bcrypt_elixir, "~> 3.2"},
+      {:plug_cowboy, "~> 2.7"},
+      {:jason, "~> 1.4"},
       {:ldap_asn, path: "ldap_asn/", manager: :rebar3},
       {:joken, "~> 2.6"},
       {:castore, "~> 1.0"},
-      {:mint, "~> 1.0"},
+      {:mint, "~> 1.6"},
       {:nimble_totp, "~> 1.0"},
-      {:eqrcode, "~> 0.1.10"}
+      {:eqrcode, "~> 0.2"}
     ]
   end
 end

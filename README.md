@@ -63,6 +63,7 @@ Don't worry; this is not as difficult as it might seem.
 If you don't want to install unneeded software directly onto your system, it is possible to compile the software in a container or VM and move the compiled files to your actual machine.
 
  - [Install the elixir software for your operating system](https://elixir-lang.org/install.html). 
+   - You may have to additionally install the `erlang-dev` package to prevent compiler errors.
    - If there is no Elixir library available for your operating system, you may want to check out [Erlang Solutions](https://www.erlang-solutions.com/downloads/https://www.erlang-solutions.com/downloads/). You could also install an erlang library, and [compile Elixir from source](https://github.com/elixir-lang/elixir).
  - Clone this project into a directory of your choice that is not the directory that you want to run it in (such as your home directory), and change into the project folder
  - Run `mix deps.get` (this requires an internet connection)
