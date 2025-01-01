@@ -8,7 +8,7 @@ The project is written in Elixir, which means it should use relatively few resou
 
 ## Features
 
- - Provides single sign-on authentication via OAuth2
+ - Provides single sign-on authentication via OAuth2 / OpenID Connect
  - Provides single sign-on authentication via forward authentication
  - Provides single sign-on authentication via proxy authetication (as an alternative to forward authentication)
  - Users can be authenticated via LDAP
@@ -97,10 +97,14 @@ They can be configured using the applications panel.
 DAS supports four different protocols for interacting with a client application: OAuth2, LDAP, forward authentication, and proxy authentication.
 Although all client applications reside in the same location in the DAS interface and all behave similarly within DAS, you will have to take different steps depending on the type of your client application.
 
-#### OAuth client applications
+#### OAuth / OpenID Connect client applications
 
 OAuth2 is the preferred protocol, as it allows for single sign-on, but only has one interaction with DAS.
 In Oauth2, the client application redirects the user to DAS, which will redirect authenticated users back with a token that the client application can use to fetch the identity of the user.
+
+Sidenote: DAS supports both OAuth and OpenID Connect for what it calls an "OAuth client application". 
+If your client application offers both, you should use OpenID Connect.
+See the section "OAauth2 vs. OpenID Connect" below for more information.
 
 For Oauth, both the name and URL values are cosmetic.
 After creating an OAuth client application, you will be able to view the application id and secret.
@@ -108,7 +112,7 @@ You can then configure these in your OAuth client application.
 You can use the following configuration for an OAuth client application:
 
  - **Client Id**: shown in DAS
- - **Clietn Secret**: shown in DAS (after pressing the "view credentials" button)
+ - **Client Secret**: shown in DAS (after pressing the "view credentials" button)
  - **Configuration**: https://<address>/.well-known/openid-configuration
  - **Authorization URL**: https://<address>/oauth/authorize
  - **Token URL**: https://<address>/oauth/token
@@ -190,15 +194,33 @@ Unfortunately, it is impossible to communicate this to the end user at the login
 If the login fails, it is also not possible to tell the user whether their password or TOTP code was incorrect.
 Please note that each TOTP code can only be used once, i.e. you can only log in successfully every 30 seconds.
 
+### OAuth2 vs. OpenID Connect
+
+This document mentions OAuth as an authentication protocol, as does the DAS user interface.
+In some locations, OpenID Connect is also mentioned.
+This is due to a somewhat confusing piece of computer history, which is not all too important for daily use.
+However, for full transparancy, this paragraph will elaborate on the technical details and how DAS actually behaves.
+
+OAuth2 was originally developed as an *authorization* protocol, not an *authentication* protocol.
+Its original usecase was to allow third-party applications to use a specific user account to interact with an API; for example, to allow a third-party Twitter client.
+Such a protocol can, however, also be used as an *authentication* protocol; a service which provides the OAuth API usually provides an API endpoint with information on the user that is logged in.
+If the client application simply asks a user to *authorize* them with an OAuth endpoint, they can then access this user info endpoint, and obtain a third-party verification of the identity of the user, essentially using OAuth as an *authentication* protocol.
+This is how "log in with Twitter" buttons on websites originated, and this process became somewhat of an unofficial standard.
+
+OpenID Connect is a separate *authentication* protocol, which is built on top of OAuth2.
+Essentially, it adds some extra cryptographically signed data to the regular OAuth2 requests, making the protocol a bit more secure and sometimes saving the extra request to the user info endpoint, making it a bit faster as well.
+It is also a formal standard, unlike the "base" OAuth2 authentication process.
+
+In practice, a client application may support either standard, and its not always easy to figure out which.
+To account for this, DAS supports both in the same API; if you configure an "OAuth client application", the given credentials can be used for both the OpenID Connect and Base OAuth2 flows.
+
+Some applications, like NextCloud, support both, and give you the choice.
+In these cases, it is recommended to use OpenID Connect.
+
+
 ## Acknowledgements
 
 This software uses the [Pure CSS library](purecss.io) for CSS rendering and the [Jackbox javascript library](https://github.com/ja1984/jackbox) is used to provide notifications. The licences for these projects have been placed in the licences folder.
 
 Please note that the Jackbox library is licenced under GPL. If you wish to redistribute DAS without adhering to GPL, replacing it with a different notifications library is recommended.
-
-## Installation
-
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at <https://hexdocs.pm/das>.
 
